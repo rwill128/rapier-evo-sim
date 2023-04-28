@@ -33,15 +33,15 @@ function performRaycast(cuboid, world) {
     const cuboidPosition = cuboid.rigidBody.translation();
     const cuboidRotation = cuboid.rigidBody.rotation();
 
-    const lineLength = 8;
+    const lineLength = 10;
     const endPointX = cuboidPosition.x + Math.cos(cuboidRotation) * lineLength;
     const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
 
     const ray = new RAPIER.Ray(
-        { x: cuboidPosition.x, y: cuboidPosition.y },
-        { x: endPointX, y: endPointY }
+        { x: endPointX, y: endPointY },
+        { x: cuboidPosition.x, y: cuboidPosition.y }
     );
-    const maxToi = 0.1;
+    const maxToi = .1;
     const solid = true;
 
     const hitWithNormal = world.castRayAndGetNormal(
@@ -91,7 +91,7 @@ export function getState(cuboid, brain) {
                 const cuboidPosition = cuboid.rigidBody.translation();
                 const cuboidRotation = cuboid.rigidBody.rotation();
 
-                const lineLength = 8;
+                const lineLength = 10;
                 const endPointX = cuboidPosition.x + Math.cos(cuboidRotation) * lineLength;
                 const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
 
@@ -178,7 +178,7 @@ export function calculateEnvironmentalEffects(cuboid) {
     // Provide a positive reward if the agent is within 10 units of the center
     const reward = (distanceToTarget <= 60) ? 100 / distanceToTarget : -distanceToTarget;
 
-    return reward;
+    cuboid.health += reward;
 }
 
 export function removeCuboid(cuboid) {

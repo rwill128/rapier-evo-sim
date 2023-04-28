@@ -12,6 +12,25 @@ class Brain {
     initialize(parentBrain) {
         this.numNodesInHiddenLayer = Math.max(1, Math.round(Math.random() * 20 + (Math.random() * 3) - 1.5));
 
+        const mutationRate = 0.005;
+
+        if (parentBrain === null || Math.random() < mutationRate) {
+            this.sensoryInputs = this.getRandomSubarray(ALL_SENSORY_INPUTS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1);
+        } else {
+            this.sensoryInputs = parentBrain.sensoryInputs.slice();
+
+            if (Math.random() < mutationRate && this.sensoryInputs.length > 1) {
+                // Remove a random sensory input
+                const removeIndex = Math.floor(Math.random() * this.sensoryInputs.length);
+                this.sensoryInputs.splice(removeIndex, 1);
+            } else if (Math.random() < mutationRate && this.sensoryInputs.length < ALL_SENSORY_INPUTS.length) {
+                // Add a random sensory input that is not already in the list
+                const availableInputs = ALL_SENSORY_INPUTS.filter(input => !this.sensoryInputs.includes(input));
+                const newInput = availableInputs[Math.floor(Math.random() * availableInputs.length)];
+                this.sensoryInputs.push(newInput);
+            }
+        }
+
         if (parentBrain === null) {
             this.sensoryInputs = this.getRandomSubarray(ALL_SENSORY_INPUTS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1);
             this.firstFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];

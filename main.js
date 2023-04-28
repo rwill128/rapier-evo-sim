@@ -43,8 +43,7 @@ async function init() {
             const action = brain.react(state);
             applyAction(cuboid, action);
 
-            const effects = calculateEnvironmentalEffects(cuboid);
-            cuboid.health += effects;
+            calculateEnvironmentalEffects(cuboid);
 
             // Check if the health is less than or equal to 0 and replace the cuboid
             if (cuboid.health <= 0) {
