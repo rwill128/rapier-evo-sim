@@ -1,6 +1,6 @@
 import { R } from "./rl.js";
 
-const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health", "eye_sight.x"];
+const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health", "absolute_eye_sight.x","absolute_eye_sight.y", "relative_eye_sight.x", "relative_eye_sight.y"];
 const ALL_ACTIONS = ["absolute_impulse.x", "absolute_impulse.y", "relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
 const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];
 

@@ -28,81 +28,105 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     return {rigidBody, mesh: cuboidMesh, health, brain, collider, age, children};
 }
 
-export function getState(cuboid, brain) {
 
-    let state_observations = []
+function performRaycast(cuboid, world) {
+    const cuboidPosition = cuboid.rigidBody.translation();
+    const cuboidRotation = cuboid.rigidBody.rotation();
+
+    const lineLength = 8;
+    const endPointX = cuboidPosition.x + Math.cos(cuboidRotation) * lineLength;
+    const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
+
+    const ray = new RAPIER.Ray(
+        { x: cuboidPosition.x, y: cuboidPosition.y },
+        { x: endPointX, y: endPointY }
+    );
+    const maxToi = 0.1;
+    const solid = true;
+
+    const hitWithNormal = world.castRayAndGetNormal(
+        ray,
+        maxToi,
+        solid,
+        null,
+        null,
+        null,
+        cuboid.rigidBody
+    );
+
+    return hitWithNormal !== null ? ray.pointAt(hitWithNormal.toi) : null;
+}
+
+export function getState(cuboid, brain) {
+    let stateObservations = [];
+
+    const hasEyeSightInput = brain.sensoryInputs.some((input) =>
+        input.startsWith("absolute_eye_sight") || input.startsWith("relative_eye_sight")
+    );
+
+    const hitPoint = hasEyeSightInput ? performRaycast(cuboid, world) : null;
 
     for (let i = 0; i < brain.sensoryInputs.length; i++) {
-        let next_input = brain.sensoryInputs[i];
+        const nextInput = brain.sensoryInputs[i];
 
-        if (next_input === "position.x") {
-            state_observations.push(cuboid.rigidBody.translation().x)
-        }
+        if (nextInput === "position.x") {
+            stateObservations.push(cuboid.rigidBody.translation().x);
+        } else if (nextInput === "position.y") {
+            stateObservations.push(cuboid.rigidBody.translation().y);
+        } else if (nextInput === "velocity.x") {
+            stateObservations.push(cuboid.rigidBody.linvel().x);
+        } else if (nextInput === "velocity.y") {
+            stateObservations.push(cuboid.rigidBody.linvel().y);
+        } else if (nextInput === "health") {
+            stateObservations.push(cuboid.health);
+        } else if (nextInput === "age") {
+            stateObservations.push(cuboid.age);
+        } else if (
+            nextInput === "absolute_eye_sight.x" ||
+            nextInput === "absolute_eye_sight.y" ||
+            nextInput === "relative_eye_sight.x" ||
+            nextInput === "relative_eye_sight.y"
+        ) {
+            if (hitPoint !== null) {
+                const cuboidPosition = cuboid.rigidBody.translation();
+                const cuboidRotation = cuboid.rigidBody.rotation();
 
-        if (next_input === "position.y") {
-            state_observations.push(cuboid.rigidBody.translation().y)
-        }
+                const lineLength = 8;
+                const endPointX = cuboidPosition.x + Math.cos(cuboidRotation) * lineLength;
+                const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
 
-        if (next_input === "velocity.x") {
-            state_observations.push(cuboid.rigidBody.linvel().x)
-        }
+                if (nextInput === "absolute_eye_sight.x") {
+                    stateObservations.push(hitPoint.x - cuboidPosition.x);
+                } else if (nextInput === "absolute_eye_sight.y") {
+                    stateObservations.push(hitPoint.y - cuboidPosition.y);
+                } else if (nextInput === "relative_eye_sight.x") {
+                    const relativeHitPointX =
+                        (hitPoint.x - cuboidPosition.x) * Math.cos(-cuboidRotation) -
+                        (hitPoint.y - cuboidPosition.y) * Math.sin(-cuboidRotation);
+                    stateObservations.push(relativeHitPointX);
+                } else if (nextInput === "relative_eye_sight.y") {
+                    const relativeHitPointY =
+                        (hitPoint.x - cuboidPosition.x) * Math.sin(-cuboidRotation) +
+                        (hitPoint.y - cuboidPosition.y) * Math.cos(-cuboidRotation);
+                    stateObservations.push(relativeHitPointY);
+                }
 
-        if (next_input === "velocity.y") {
-            state_observations.push(cuboid.rigidBody.linvel().y)
-        }
-
-        if (next_input === "health") {
-            state_observations.push(cuboid.health)
-        }
-
-        if (next_input === "age") {
-            state_observations.push(cuboid.age)
-        }
-
-        if (next_input === "eye_sight.x") {
-
-            const cuboidPosition = cuboid.rigidBody.translation();
-            const cuboidRotation = cuboid.rigidBody.rotation(); // Get the rotation (in radians) from the rigid body
-
-            // Calculate the end point of the line based on the cuboid's rotation
-            const lineLength = 8;
-            const endPointX = cuboidPosition.x + Math.cos(cuboidRotation) * lineLength;
-            const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
-
-            let ray = new RAPIER.Ray(
-                {x: cuboidPosition.x, y: cuboidPosition.y},
-                {x: endPointX, y: endPointY}
-            );
-            let maxToi = .1;
-            let solid = true;
-
-            let hitWithNormal = world.castRayAndGetNormal(ray, maxToi, solid, null, null, null, cuboid.rigidBody);
-            if (hitWithNormal != null) {
-                let hitPoint = ray.pointAt(hitWithNormal.toi);
-                console.log("hit at point", hitPoint, "with normal", hitWithNormal.normal);
-
-                state_observations.push(hitPoint.x - cuboid.rigidBody.translation().x);
-
-                const material = new THREE.LineBasicMaterial({color: 0x0000ff});
+                const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
                 const geometry = new THREE.BufferGeometry().setFromPoints([
                     new THREE.Vector3(cuboidPosition.x, cuboidPosition.y, 0),
-                    new THREE.Vector3(endPointX, endPointY, 0)
+                    new THREE.Vector3(endPointX, endPointY, 0),
                 ]);
 
-                let line = new THREE.Line(geometry, material);
+                const line = new THREE.Line(geometry, material);
 
                 eyeLines.push(line);
                 scene.add(line);
-
             } else {
-                state_observations.push(0.0)
+                stateObservations.push(0.0);
             }
         }
-
     }
-
-
-    return state_observations;
+    return stateObservations;
 }
 
 export function applyAction(cuboid, action) {
