@@ -115,10 +115,10 @@ export function updateInfoWindow() {
         const brain = selectedCuboid.brain;
 
         const actorWeights1 = brain.inputs.toJSON();
-        const actorBiases1 = brain.input_biases.toJSON();
+        const actorBiases1 = brain.inputBiases.toJSON();
 
         const actorWeights2 = brain.outputs.toJSON();
-        const actorBiases2 = brain.output_biases.toJSON();
+        const actorBiases2 = brain.outputBiases.toJSON();
 
         const actorWeights1Table = weightsToTable(actorWeights1, actorBiases1);
         const actorWeights2Table = weightsToTable(actorWeights2, actorBiases2);
@@ -129,7 +129,10 @@ export function updateInfoWindow() {
       <p>Health: ${health.toFixed(2)}</p>
       <p>Age: ${age}</p>
       <p>Children: ${children}</p>
-      <p>Sensory inputs: ${brain.sensory_inputs}</p>
+      <p>Sensory inputs: ${brain.sensoryInputs}</p>
+      <p>First filter: ${brain.firstFilterType}</p>
+      <p>Second filter: ${brain.secondFilterType}</p>
+      <p>Action types: ${brain.actionTypes}</p>
       <h3>Brains Weights</h3>
         <h4>Inputs</h4>
         ${actorWeights1Table}

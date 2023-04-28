@@ -1,11 +1,43 @@
-import {R} from "./rl.js";
+import { R } from "./rl.js";
 
-export function createBrain(parentBrain = null) {
+const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health", "eye_sight.x"];
+const ALL_ACTIONS = ["absolute_impulse.x", "absolute_impulse.y", "relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
+const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];
 
-    let brain = {}
-    let d = Math.max(1, Math.round(Math.random() * 20 + (Math.random() * 3) - 1.5));
+class Brain {
+    constructor(parentBrain = null) {
+        this.initialize(parentBrain);
+    }
 
-    function getRandomSubarray(arr, size) {
+    initialize(parentBrain) {
+        this.numNodesInHiddenLayer = Math.max(1, Math.round(Math.random() * 20 + (Math.random() * 3) - 1.5));
+
+        if (parentBrain === null) {
+            this.sensoryInputs = this.getRandomSubarray(ALL_SENSORY_INPUTS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1);
+            this.firstFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
+            this.secondFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
+            this.actionTypes = this.getRandomSubarray(ALL_ACTIONS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1)
+        } else {
+            this.sensoryInputs = parentBrain.sensoryInputs;
+            this.firstFilterType = parentBrain.firstFilterType;
+            this.secondFilterType = parentBrain.secondFilterType;
+            this.actionTypes = parentBrain.actionTypes;
+        }
+
+        this.inputs = new R.Mat(this.numNodesInHiddenLayer, this.sensoryInputs.length);
+        this.inputBiases = new R.Mat(this.numNodesInHiddenLayer, 1);
+        this.outputs = new R.Mat(this.actionTypes.length, this.numNodesInHiddenLayer);
+        this.outputBiases = new R.Mat(this.actionTypes.length, 1);
+
+        if (parentBrain !== null) {
+            this.inputs.setFromWithErrors(parentBrain.inputs.w);
+            this.inputBiases.setFromWithErrors(parentBrain.inputBiases.w);
+            this.outputs.setFromWithErrors(parentBrain.outputs.w);
+            this.outputBiases.setFromWithErrors(parentBrain.outputBiases.w);
+        }
+    }
+
+    getRandomSubarray(arr, size) {
         const shuffled = arr.slice(0);
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -14,53 +46,33 @@ export function createBrain(parentBrain = null) {
         return shuffled.slice(0, size);
     }
 
-    const allSensoryInputs = ["position.x", "position.y", "velocity.x", "velocity.y", "health", "eye_sight.x"];
-    const subsetSize = Math.floor(Math.random() * (allSensoryInputs.length - 1)) + 1;
-    brain.sensory_inputs = getRandomSubarray(allSensoryInputs, subsetSize);
-
-    brain.inputs = new R.Mat(d, brain.sensory_inputs.length);
-    brain.input_biases = new R.Mat(d, 1);
-    brain.outputs = new R.Mat(2, d);
-    brain.output_biases = new R.Mat(2, 1);
-
-    if (parentBrain !== null) {
-        brain.inputs.setFromWithErrors(parentBrain.inputs.w);
-        brain.input_biases.setFromWithErrors(parentBrain.input_biases.w);
-        brain.outputs.setFromWithErrors(parentBrain.outputs.w);
-        brain.output_biases.setFromWithErrors(parentBrain.output_biases.w);
-    }
-
-    function sampleIndexFromSoftmax(probabilities) {
-        const randomValue = Math.random();
-        let accumulatedProb = 0;
-
-        for (let index = 0; index < probabilities.length; index++) {
-            accumulatedProb += probabilities[index];
-            if (randomValue <= accumulatedProb) {
-                return index;
-            }
+    filter(G, matrix, filterType) {
+        switch (filterType) {
+            case "tanh":
+                return G.tanh(matrix);
+            case "sigmoid":
+                return G.sigmoid(matrix);
+            case "relu":
+                return G.relu(matrix);
+            default:
+                throw new Error("Invalid filter type");
         }
-
-        // If there's some floating-point precision issue, return the last index
-        return probabilities.length - 1;
     }
 
-
-    brain.react = function(slist) {
-        var s = new R.Mat(slist.length, 1);
+    react(slist) {
+        const s = new R.Mat(slist.length, 1);
         s.setFrom(slist);
 
-        var G = new R.Graph(false);
-        var a1mat = G.add(G.mul(this.inputs, s), this.input_biases);
-        var h1mat = G.tanh(a1mat);
-        var a2mat = G.add(G.mul(this.outputs, h1mat), this.output_biases);
+        const G = new R.Graph(false);
+        const a1mat = G.add(G.mul(this.inputs, s), this.inputBiases);
+        const h1mat = this.filter(G, a1mat, this.firstFilterType);
+        const a2mat = G.add(G.mul(this.outputs, h1mat), this.outputBiases);
+        const result = this.filter(G, a2mat, this.secondFilterType);
 
-        var tanh = G.tanh(a2mat);
-
-        return tanh.w;
-
-        // return sampleIndexFromSoftmax(R.softmax(a2mat).w);
+        return result.w;
     }
+}
 
-    return brain;
+export function createBrain(parentBrain = null) {
+    return new Brain(parentBrain);
 }

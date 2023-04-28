@@ -38,10 +38,10 @@ async function init() {
 
         for (const cuboid of cuboids) {
             cuboid.age++;
-            const {rigidBody, brain} = cuboid;
+            const {brain} = cuboid;
             const state = getState(cuboid, brain);
             const action = brain.react(state);
-            applyAction(rigidBody, action);
+            applyAction(cuboid, action);
 
             const effects = calculateEnvironmentalEffects(cuboid);
             cuboid.health += effects;

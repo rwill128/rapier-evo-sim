@@ -32,8 +32,8 @@ export function getState(cuboid, brain) {
 
     let state_observations = []
 
-    for (let i = 0; i < brain.sensory_inputs.length; i++) {
-        let next_input = brain.sensory_inputs[i];
+    for (let i = 0; i < brain.sensoryInputs.length; i++) {
+        let next_input = brain.sensoryInputs[i];
 
         if (next_input === "position.x") {
             state_observations.push(cuboid.rigidBody.translation().x)
@@ -73,7 +73,7 @@ export function getState(cuboid, brain) {
                 {x: cuboidPosition.x, y: cuboidPosition.y},
                 {x: endPointX, y: endPointY}
             );
-            let maxToi = .01;
+            let maxToi = .1;
             let solid = true;
 
             let hitWithNormal = world.castRayAndGetNormal(ray, maxToi, solid, null, null, null, cuboid.rigidBody);
@@ -105,11 +105,44 @@ export function getState(cuboid, brain) {
     return state_observations;
 }
 
-export function applyAction(rigidBody, action) {
-    const impulseStrength = .005;
+export function applyAction(cuboid, action) {
 
-    rigidBody.applyImpulse({x: action[0] * impulseStrength, y: action[1] * impulseStrength}, true);
+    const actionTypes = cuboid.brain.actionTypes;
+    const orientation = cuboid.rigidBody.rotation();
+
+    const linearImpulseStrength = 0.1;
+    const rotationalImpulseStrength = 0.005;
+
+    for (let i = 0; i < actionTypes.length; i++) {
+        const actionType = actionTypes[i];
+        const impulseValue = action[i];
+
+        switch (actionType) {
+            case "absolute_impulse.x":
+                cuboid.rigidBody.applyImpulse({ x: impulseValue * linearImpulseStrength, y: 0 }, true);
+                break;
+            case "absolute_impulse.y":
+                cuboid.rigidBody.applyImpulse({ x: 0, y: impulseValue * linearImpulseStrength }, true);
+                break;
+            case "relative_impulse.x":
+                const impulseX = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
+                const impulseY = impulseValue * (Math.sin(orientation) * linearImpulseStrength);
+                cuboid.rigidBody.applyImpulse({ x: impulseX, y: impulseY }, true);
+                break;
+            case "relative_impulse.y":
+                const impulseXNeg = -impulseValue * (Math.sin(orientation) * linearImpulseStrength);
+                const impulseYPos = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
+                cuboid.rigidBody.applyImpulse({ x: impulseXNeg, y: impulseYPos }, true);
+                break;
+            case "rotational_impulse":
+                cuboid.rigidBody.applyTorqueImpulse(impulseValue * rotationalImpulseStrength);
+                break;
+            default:
+                throw new Error(`Invalid action type: ${actionType}`);
+        }
+    }
 }
+
 
 export function calculateEnvironmentalEffects(cuboid) {
     const targetPosition = {x: 0, y: 0};
