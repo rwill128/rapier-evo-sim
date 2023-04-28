@@ -1,7 +1,7 @@
 import {initInputHandler, onMouseClick, selectedCuboid, updateCamera, updateInfoWindow} from "./inputHandler.js";
 import {initRenderer, render, scene} from "./renderer.js";
 import {initPhysicsEngine, stepPhysics, world} from "./physicsEngine.js";
-import {generateRandomCuboidPositions} from "./utils.js";
+import {generateRandomCuboidPositions, getRandomCuboidExcept} from "./utils.js";
 import {
     applyAction,
     calculateEnvironmentalEffects,
@@ -9,6 +9,7 @@ import {
     getState,
     removeCuboid
 } from "./cuboid.js";
+import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier2d-compat';
 
 let cuboids;
 
@@ -37,30 +38,13 @@ async function init() {
 
         for (const cuboid of cuboids) {
             cuboid.age++;
-            const {rigidBody, agent} = cuboid;
-            const state = getState(rigidBody);
-            const action = agent.react(state);
+            const {rigidBody, brain} = cuboid;
+            const state = getState(cuboid, brain);
+            const action = brain.react(state);
             applyAction(rigidBody, action);
 
             const effects = calculateEnvironmentalEffects(cuboid);
             cuboid.health += effects;
-
-            function getRandomCuboidExcept(cuboidsList, excludeCuboid) {
-                // Filter out the excluded cuboid and sort the remaining cuboids by health in descending order
-                const sortedCuboids = cuboidsList.filter(cuboid => cuboid !== excludeCuboid).sort((a, b) => b.age - a.age);
-
-                // If there are no remaining cuboids, return null
-                if (sortedCuboids.length === 0) {
-                    return null;
-                }
-
-                // Get the top 5 healthiest cuboids, or all remaining cuboids if there are fewer than 5
-                const topCuboids = sortedCuboids.slice(0, Math.min(sortedCuboids.length, 5));
-
-                // Choose a random cuboid from the top 5 healthiest cuboids
-                const randomIndex = Math.floor(Math.random() * topCuboids.length);
-                return topCuboids[randomIndex];
-            }
 
             // Check if the health is less than or equal to 0 and replace the cuboid
             if (cuboid.health <= 0) {
@@ -70,7 +54,9 @@ async function init() {
                 const newPosition = generateRandomCuboidPositions(1, width, height, padding)[0];
 
                 // Replace the cuboid with a new one
-                const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, getRandomCuboidExcept(cuboids, cuboid).agent);
+                let procreator = getRandomCuboidExcept(cuboids, cuboid);
+                procreator.children++;
+                const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, procreator.brain);
                 const index = cuboids.indexOf(cuboid);
                 cuboids[index] = newCuboid;
             }

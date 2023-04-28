@@ -4,10 +4,24 @@ export function createBrain(parentBrain = null) {
 
     let brain = {}
     let d = Math.max(1, Math.round(Math.random() * 20 + (Math.random() * 3) - 1.5));
-    brain.inputs = new R.RandMat(d, 4, 0, 0.01)
-    brain.input_biases = new R.Mat(d, 1, 0, 0.01);
-    brain.outputs = new R.RandMat(4, d, 0, 0.01);
-    brain.output_biases = new R.Mat(4, 1, 0, 0.01);
+
+    function getRandomSubarray(arr, size) {
+        const shuffled = arr.slice(0);
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled.slice(0, size);
+    }
+
+    const allSensoryInputs = ["position.x", "position.y", "velocity.x", "velocity.y", "health", "eye_sight.x"];
+    const subsetSize = Math.floor(Math.random() * (allSensoryInputs.length - 1)) + 1;
+    brain.sensory_inputs = getRandomSubarray(allSensoryInputs, subsetSize);
+
+    brain.inputs = new R.Mat(d, brain.sensory_inputs.length);
+    brain.input_biases = new R.Mat(d, 1);
+    brain.outputs = new R.Mat(2, d);
+    brain.output_biases = new R.Mat(2, 1);
 
     if (parentBrain !== null) {
         brain.inputs.setFromWithErrors(parentBrain.inputs.w);
@@ -33,15 +47,19 @@ export function createBrain(parentBrain = null) {
 
 
     brain.react = function(slist) {
-        var s = new R.Mat(4, 1);
+        var s = new R.Mat(slist.length, 1);
         s.setFrom(slist);
 
         var G = new R.Graph(false);
         var a1mat = G.add(G.mul(this.inputs, s), this.input_biases);
-        var h1mat = G.relu(a1mat);
+        var h1mat = G.tanh(a1mat);
         var a2mat = G.add(G.mul(this.outputs, h1mat), this.output_biases);
 
-        return sampleIndexFromSoftmax(R.softmax(a2mat).w);
+        var tanh = G.tanh(a2mat);
+
+        return tanh.w;
+
+        // return sampleIndexFromSoftmax(R.softmax(a2mat).w);
     }
 
     return brain;

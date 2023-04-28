@@ -111,13 +111,14 @@ export function updateInfoWindow() {
         const position = selectedCuboid.rigidBody.translation();
         const health = selectedCuboid.health;
         const age = selectedCuboid.age;
-        const agent = selectedCuboid.agent;
+        const children = selectedCuboid.children;
+        const brain = selectedCuboid.brain;
 
-        const actorWeights1 = agent.inputs.toJSON();
-        const actorBiases1 = agent.input_biases.toJSON();
+        const actorWeights1 = brain.inputs.toJSON();
+        const actorBiases1 = brain.input_biases.toJSON();
 
-        const actorWeights2 = agent.outputs.toJSON();
-        const actorBiases2 = agent.output_biases.toJSON();
+        const actorWeights2 = brain.outputs.toJSON();
+        const actorBiases2 = brain.output_biases.toJSON();
 
         const actorWeights1Table = weightsToTable(actorWeights1, actorBiases1);
         const actorWeights2Table = weightsToTable(actorWeights2, actorBiases2);
@@ -126,7 +127,9 @@ export function updateInfoWindow() {
       <h3>Selected Cuboid</h3>
       <p>Position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)})</p>
       <p>Health: ${health.toFixed(2)}</p>
-      <p>Age: ${age.toFixed(2)}</p>
+      <p>Age: ${age}</p>
+      <p>Children: ${children}</p>
+      <p>Sensory inputs: ${brain.sensory_inputs}</p>
       <h3>Brains Weights</h3>
         <h4>Inputs</h4>
         ${actorWeights1Table}

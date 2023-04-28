@@ -7,8 +7,8 @@ export function generateRandomCuboidPositions(count, width, height, padding) {
     const positions = [];
 
     while (positions.length < count) {
-        let x = (Math.random() * 50) - 25; // Random x between -9 and 9
-        let y = (Math.random() * 50) - 25; // Random y between -4 and 4
+        let x = (Math.random() * 100) - 50; // Random x between -9 and 9
+        let y = (Math.random() * 100) - 50; // Random y between -4 and 4
 
         let overlaps = false;
         for (const pos of positions) {
@@ -26,4 +26,21 @@ export function generateRandomCuboidPositions(count, width, height, padding) {
     }
 
     return positions;
+}
+
+export function getRandomCuboidExcept(cuboidsList, excludeCuboid) {
+    // Filter out the excluded cuboid and sort the remaining cuboids by health in descending order
+    const sortedCuboids = cuboidsList.filter(cuboid => cuboid !== excludeCuboid).sort((a, b) => b.age - a.age);
+
+    // If there are no remaining cuboids, return null
+    if (sortedCuboids.length === 0) {
+        return null;
+    }
+
+    // Get the top 5 healthiest cuboids, or all remaining cuboids if there are fewer than 5
+    const topCuboids = sortedCuboids.slice(0, Math.min(sortedCuboids.length, 5));
+
+    // Choose a random cuboid from the top 5 healthiest cuboids
+    const randomIndex = Math.floor(Math.random() * topCuboids.length);
+    return topCuboids[randomIndex];
 }

@@ -3,6 +3,7 @@ import {cuboids} from "./main.js";
 import {selectedCuboid} from "./inputHandler.js";
 
 let scene, camera, renderer;
+let eyeLines = [];
 
 function initRenderer(world_size = 20) {
     scene = new THREE.Scene();
@@ -41,12 +42,16 @@ function render() {
             // Change the color based on the health or any other condition
             // For example, you can interpolate the color between red and brown based on the health percentage
             const healthPercentage = age / 10000; // Assuming maximum health is 100
-            const color = new THREE.Color().lerpColors(new THREE.Color(0x964B00), new THREE.Color(0xff0000), healthPercentage);
+            const color = new THREE.Color().lerpColors(new THREE.Color(0x964B00), new THREE.Color(0x00ff00), healthPercentage);
             mesh.material.color = color;
         }
     }
 
     renderer.render(scene, camera);
+
+    for (const line of eyeLines) {
+        scene.remove(line);
+    }
 }
 
-export {initRenderer, render, scene, camera, renderer};
+export {initRenderer, render, scene, camera, renderer, eyeLines};

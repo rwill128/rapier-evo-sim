@@ -1,8 +1,8 @@
-import {scene} from "./renderer.js";
+import {eyeLines, scene} from "./renderer.js";
 import {world} from "./physicsEngine.js";
 import * as THREE from 'https://cdn.skypack.dev/three';
 import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier2d-compat';
-import {createBrain} from "./rlAgent.js";
+import {createBrain} from "./brain.js";
 import {deselect, selectedCuboid} from "./inputHandler.js";
 
 export function createCuboid(x, y, width, height, health, parentAgent = null) {
@@ -20,42 +20,95 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     const cuboidMesh = new THREE.Mesh(cuboidGeometry, cuboidMaterial);
     scene.add(cuboidMesh);
 
-    const agent = createBrain(parentAgent);
+    const brain = createBrain(parentAgent);
 
     let age = 1;
+    let children = 0;
 
-    return {rigidBody, mesh: cuboidMesh, health, agent, collider, age};
+    return {rigidBody, mesh: cuboidMesh, health, brain, collider, age, children};
 }
 
-export function getState(rigidBody) {
-    const position = rigidBody.translation();
-    const velocity = rigidBody.linvel();
+export function getState(cuboid, brain) {
 
-    return [position.x, position.y, velocity.x, velocity.y];
+    let state_observations = []
+
+    for (let i = 0; i < brain.sensory_inputs.length; i++) {
+        let next_input = brain.sensory_inputs[i];
+
+        if (next_input === "position.x") {
+            state_observations.push(cuboid.rigidBody.translation().x)
+        }
+
+        if (next_input === "position.y") {
+            state_observations.push(cuboid.rigidBody.translation().y)
+        }
+
+        if (next_input === "velocity.x") {
+            state_observations.push(cuboid.rigidBody.linvel().x)
+        }
+
+        if (next_input === "velocity.y") {
+            state_observations.push(cuboid.rigidBody.linvel().y)
+        }
+
+        if (next_input === "health") {
+            state_observations.push(cuboid.health)
+        }
+
+        if (next_input === "age") {
+            state_observations.push(cuboid.age)
+        }
+
+        if (next_input === "eye_sight.x") {
+
+            const cuboidPosition = cuboid.rigidBody.translation();
+            const cuboidRotation = cuboid.rigidBody.rotation(); // Get the rotation (in radians) from the rigid body
+
+            // Calculate the end point of the line based on the cuboid's rotation
+            const lineLength = 8;
+            const endPointX = cuboidPosition.x + Math.cos(cuboidRotation) * lineLength;
+            const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
+
+            let ray = new RAPIER.Ray(
+                {x: cuboidPosition.x, y: cuboidPosition.y},
+                {x: endPointX, y: endPointY}
+            );
+            let maxToi = .01;
+            let solid = true;
+
+            let hitWithNormal = world.castRayAndGetNormal(ray, maxToi, solid, null, null, null, cuboid.rigidBody);
+            if (hitWithNormal != null) {
+                let hitPoint = ray.pointAt(hitWithNormal.toi);
+                console.log("hit at point", hitPoint, "with normal", hitWithNormal.normal);
+
+                state_observations.push(hitPoint.x - cuboid.rigidBody.translation().x);
+
+                const material = new THREE.LineBasicMaterial({color: 0x0000ff});
+                const geometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(cuboidPosition.x, cuboidPosition.y, 0),
+                    new THREE.Vector3(endPointX, endPointY, 0)
+                ]);
+
+                let line = new THREE.Line(geometry, material);
+
+                eyeLines.push(line);
+                scene.add(line);
+
+            } else {
+                state_observations.push(0.0)
+            }
+        }
+
+    }
+
+
+    return state_observations;
 }
 
 export function applyAction(rigidBody, action) {
-    const impulseStrength = 1;
-    let impulse;
+    const impulseStrength = .005;
 
-    switch (action) {
-        case 0:
-            impulse = {x: 0, y: impulseStrength};
-            break;
-        case 1:
-            impulse = {x: 0, y: -impulseStrength};
-            break;
-        case 2:
-            impulse = {x: -impulseStrength, y: 0};
-            break;
-        case 3:
-            impulse = {x: impulseStrength, y: 0};
-            break;
-        case 4:
-            return;
-    }
-
-    rigidBody.applyImpulse(impulse, true);
+    rigidBody.applyImpulse({x: action[0] * impulseStrength, y: action[1] * impulseStrength}, true);
 }
 
 export function calculateEnvironmentalEffects(cuboid) {
@@ -83,3 +136,4 @@ export function removeCuboid(cuboid) {
     // Remove the mesh from the scene
     scene.remove(cuboid.mesh);
 }
+
