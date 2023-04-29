@@ -1,9 +1,15 @@
 import {eyeLines, scene} from "./renderer.js";
-import {world} from "./physicsEngine.js";
+import {RAPIER, world} from "./physicsEngine.js";
 import * as THREE from 'https://cdn.skypack.dev/three';
-import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier2d-compat';
 import {createBrain} from "./brain.js";
 import {deselect, selectedCuboid} from "./inputHandler.js";
+
+let cuboidLookupByCollider = {};
+let cuboidLookupByRigidBody = {};
+let sceneObjectLookupBySensorCollider = {};
+let sceneObjectLookupByRigidBody = {};
+let sceneObjectLookupByCollider = {};
+
 
 export function createCuboid(x, y, width, height, health, parentAgent = null) {
     // Create a dynamic rigid-body.
@@ -25,7 +31,49 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     let age = 1;
     let children = 0;
 
-    return {rigidBody, mesh: cuboidMesh, health, brain, collider, age, children};
+    let cuboid = {rigidBody, mesh: cuboidMesh, health, brain, collider, age, children};
+    cuboidLookupByCollider[collider.handle] = cuboid;
+    cuboidLookupByRigidBody[rigidBody.handle] = cuboid;
+
+    return cuboid;
+}
+
+export function createSceneObject(x, y, width, height) {
+    // Create a dynamic rigid-body.
+    let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y);
+    let rigidBody = world.createRigidBody(rigidBodyDesc);
+
+    // Create a cuboid collider attached to the dynamic rigidBody.
+    let colliderDesc = RAPIER.ColliderDesc.cuboid(width / 2, height / 2);
+    let collider = world.createCollider(colliderDesc, rigidBody);
+
+
+    // Create a cuboid mesh and add it to the scene
+    const cuboidGeometry = new THREE.BoxGeometry(width, height, 0.1);
+    const cuboidMaterial = new THREE.MeshBasicMaterial({color: 0x0000ff});
+    const cuboidMesh = new THREE.Mesh(cuboidGeometry, cuboidMaterial);
+    scene.add(cuboidMesh);
+
+    // Create a sensor collider that is twice the size of the scene object.
+    let sensorColliderDesc = RAPIER.ColliderDesc.cuboid(width, height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
+    let sensorCollider = world.createCollider(sensorColliderDesc, rigidBody);
+
+    // Create a cuboid mesh and add it to the scene
+    const sensorGeometry = new THREE.BoxGeometry(2 * width, 2 * height, 0.1);
+    // Create a sensor mesh material with transparency enabled
+    const sensorMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        transparent: true,
+        opacity: 0.1 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
+    });
+    const sensorMesh = new THREE.Mesh(sensorGeometry, sensorMaterial);
+    scene.add(sensorMesh);
+
+    let sceneObject = {rigidBody, mesh: cuboidMesh, sensorMesh: sensorMesh, sensorCollider};
+    sceneObjectLookupBySensorCollider[sensorCollider.handle] = sceneObject;
+    sceneObjectLookupByRigidBody[rigidBody.handle] = sceneObject;
+    sceneObjectLookupByCollider[collider.handle] = sceneObject;
+    return sceneObject;
 }
 
 
@@ -38,8 +86,8 @@ function performRaycast(cuboid, world) {
     const endPointY = cuboidPosition.y + Math.sin(cuboidRotation) * lineLength;
 
     const ray = new RAPIER.Ray(
-        { x: endPointX, y: endPointY },
-        { x: cuboidPosition.x, y: cuboidPosition.y }
+        {x: cuboidPosition.x, y: cuboidPosition.y},
+        {x: endPointX, y: endPointY}
     );
     const maxToi = .1;
     const solid = true;
@@ -111,7 +159,7 @@ export function getState(cuboid, brain) {
                     stateObservations.push(relativeHitPointY);
                 }
 
-                const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+                const material = new THREE.LineBasicMaterial({color: 0x0000ff});
                 const geometry = new THREE.BufferGeometry().setFromPoints([
                     new THREE.Vector3(cuboidPosition.x, cuboidPosition.y, 0),
                     new THREE.Vector3(endPointX, endPointY, 0),
@@ -143,20 +191,20 @@ export function applyAction(cuboid, action) {
 
         switch (actionType) {
             case "absolute_impulse.x":
-                cuboid.rigidBody.applyImpulse({ x: impulseValue * linearImpulseStrength, y: 0 }, true);
+                cuboid.rigidBody.applyImpulse({x: impulseValue * linearImpulseStrength, y: 0}, true);
                 break;
             case "absolute_impulse.y":
-                cuboid.rigidBody.applyImpulse({ x: 0, y: impulseValue * linearImpulseStrength }, true);
+                cuboid.rigidBody.applyImpulse({x: 0, y: impulseValue * linearImpulseStrength}, true);
                 break;
             case "relative_impulse.x":
                 const impulseX = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
                 const impulseY = impulseValue * (Math.sin(orientation) * linearImpulseStrength);
-                cuboid.rigidBody.applyImpulse({ x: impulseX, y: impulseY }, true);
+                cuboid.rigidBody.applyImpulse({x: impulseX, y: impulseY}, true);
                 break;
             case "relative_impulse.y":
                 const impulseXNeg = -impulseValue * (Math.sin(orientation) * linearImpulseStrength);
                 const impulseYPos = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
-                cuboid.rigidBody.applyImpulse({ x: impulseXNeg, y: impulseYPos }, true);
+                cuboid.rigidBody.applyImpulse({x: impulseXNeg, y: impulseYPos}, true);
                 break;
             case "rotational_impulse":
                 cuboid.rigidBody.applyTorqueImpulse(impulseValue * rotationalImpulseStrength);
@@ -183,8 +231,11 @@ export function calculateEnvironmentalEffects(cuboid) {
 
 export function removeCuboid(cuboid) {
     if (selectedCuboid === cuboid) {
-        deselect()
+        deselect();
     }
+
+    delete cuboidLookupByCollider[cuboid.collider.handle];
+    delete cuboidLookupByRigidBody[cuboid.rigidBody.handle];
 
     // Remove the rigid body from the physics world
     world.removeRigidBody(cuboid.rigidBody);
@@ -192,5 +243,11 @@ export function removeCuboid(cuboid) {
 
     // Remove the mesh from the scene
     scene.remove(cuboid.mesh);
+
+    // Dispose of the geometry and material resources
+    cuboid.mesh.geometry.dispose();
+    cuboid.mesh.material.dispose();
 }
 
+
+export {cuboidLookupByCollider, cuboidLookupByRigidBody, sceneObjectLookupBySensorCollider, sceneObjectLookupByRigidBody, sceneObjectLookupByCollider}

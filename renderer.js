@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.skypack.dev/three';
-import {cuboids} from "./main.js";
+import {cuboids, sceneObjects} from "./main.js";
 import {selectedCuboid} from "./inputHandler.js";
 
 let scene, camera, renderer;
@@ -47,11 +47,31 @@ function render() {
         }
     }
 
+    for (const {rigidBody, mesh, sensorMesh} of sceneObjects) {
+        const position = rigidBody.translation();
+        const rotation = rigidBody.rotation(); // Get the rotation (in radians) from the rigid body
+        mesh.position.set(position.x, position.y, 0);
+        mesh.rotation.z = rotation; // Update the mesh rotation (z-axis for 2D)
+
+        const color = new THREE.Color(0x00ff00);
+        mesh.material.color = color;
+
+        sensorMesh.position.set(position.x, position.y, 0);
+        sensorMesh.rotation.z = rotation; // Update the sensorMesh rotation (z-axis for 2D)
+
+        const sensorColor = new THREE.Color(0x00ff00);
+        sensorMesh.material.color = sensorColor;
+    }
+
     renderer.render(scene, camera);
 
     for (const line of eyeLines) {
         scene.remove(line);
+        line.geometry.dispose();
+        line.material.dispose();
     }
+
+    eyeLines.length = 0;
 }
 
 export {initRenderer, render, scene, camera, renderer, eyeLines};

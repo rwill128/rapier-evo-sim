@@ -3,12 +3,12 @@ export function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-export function generateRandomCuboidPositions(count, width, height, padding) {
+export function generateRandomCuboidPositions(count, width, height, padding, range = 200) {
     const positions = [];
 
     while (positions.length < count) {
-        let x = (Math.random() * 100) - 50; // Random x between -9 and 9
-        let y = (Math.random() * 100) - 50; // Random y between -4 and 4
+        let x = (Math.random() * range) - range/2; // Random x between -9 and 9
+        let y = (Math.random() * range) - range/2; // Random y between -4 and 4
 
         let overlaps = false;
         for (const pos of positions) {

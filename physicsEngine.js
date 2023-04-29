@@ -14,4 +14,4 @@ function stepPhysics() {
     world.step();
 }
 
-export {initPhysicsEngine, stepPhysics, world};
+export {initPhysicsEngine, stepPhysics, world, RAPIER};
