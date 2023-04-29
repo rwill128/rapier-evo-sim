@@ -4,17 +4,11 @@ import {initPhysicsEngine, RAPIER, stepPhysics, world} from "./physicsEngine.js"
 import {generateRandomCuboidPositions, getRandomCuboidExcept} from "./utils.js";
 import {
     applyAction,
-    calculateEnvironmentalEffects,
     createCuboid,
-    createSceneObject,
-    sceneObjectLookupByRigidBody,
-    sceneObjectLookupByCollider,
-    sceneObjectLookupBySensorCollider,
     getState,
     removeCuboid,
-    cuboidLookupByCollider,
-    cuboidLookupByRigidBody
 } from "./cuboid.js";
+import {calculateEnvironmentalEffects, createSceneObject} from "./sceneObjects.js";
 
 let cuboids;
 let sceneObjects;
@@ -55,7 +49,7 @@ async function init() {
         // Process all sceneObject effects
         for (const sceneObject of sceneObjects) {
             world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
-                otherCollider.cuboid.health += 1;
+                otherCollider.cuboid.health += 2;
             });
         }
 

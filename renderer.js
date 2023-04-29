@@ -80,4 +80,4 @@ function render() {
     eyeLines.length = 0;
 }
 
-export {initRenderer, render, scene, camera, renderer, eyeLines};
+export {initRenderer, render, scene, camera, renderer, eyeLines, THREE};
