@@ -5,7 +5,7 @@ import {generateRandomCuboidPositions, getRandomCuboidExcept} from "./utils.js";
 import {
     applyAction,
     createCuboid,
-    getState,
+    getState, reactToWorld,
     removeCuboid,
 } from "./cuboid.js";
 import {calculateEnvironmentalEffects, createSceneObject} from "./sceneObjects.js";
@@ -61,12 +61,7 @@ async function init() {
 
 
         for (const cuboid of cuboids) {
-            cuboid.age++;
-            const {brain} = cuboid;
-            const state = getState(cuboid, brain);
-            const action = brain.react(state);
-            applyAction(cuboid, action);
-
+            reactToWorld(cuboid);
             calculateEnvironmentalEffects(cuboid);
 
             // Check if the health is less than or equal to 0 and replace the cuboid

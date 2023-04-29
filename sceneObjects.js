@@ -3,7 +3,7 @@ import {scene, THREE} from "./renderer.js";
 
 export function createSceneObject(x, y, width, height) {
     // Create a dynamic rigid-body.
-    let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y).setAdditionalMass(1000);
+    let rigidBodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(x, y).setAdditionalMass(1000);
     let rigidBody = world.createRigidBody(rigidBodyDesc);
 
     // Create a cuboid collider attached to the dynamic rigidBody.
@@ -43,6 +43,7 @@ export function createSceneObject(x, y, width, height) {
 }
 
 export function calculateEnvironmentalEffects(cuboid) {
+    cuboid.age++;
     const targetPosition = {x: 0, y: 0};
     const distanceToTarget = Math.sqrt(
         Math.pow(targetPosition.x - cuboid.rigidBody.translation().x, 2) +

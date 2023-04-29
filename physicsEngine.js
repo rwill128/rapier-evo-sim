@@ -10,8 +10,4 @@ async function initPhysicsEngine(world_size = 20.0) {
 
 }
 
-function stepPhysics() {
-    world.step();
-}
-
-export {initPhysicsEngine, stepPhysics, world, RAPIER};
+export {initPhysicsEngine, world, RAPIER};

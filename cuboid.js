@@ -46,11 +46,11 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     return cuboid;
 }
 
-export function getState(cuboid, brain) {
+export function getState(cuboid) {
     let stateObservations = [];
 
-    for (let i = 0; i < brain.sensoryInputs.length; i++) {
-        const nextInput = brain.sensoryInputs[i];
+    for (let i = 0; i < cuboid.brain.sensoryInputs.length; i++) {
+        const nextInput = cuboid.brain.sensoryInputs[i];
 
         if (nextInput === "position.x") {
             stateObservations.push(cuboid.rigidBody.translation().x);
@@ -105,6 +105,12 @@ export function applyAction(cuboid, action) {
                 throw new Error(`Invalid action type: ${actionType}`);
         }
     }
+}
+
+export function reactToWorld(cuboid) {
+    const state = getState(cuboid);
+    const action = cuboid.brain.react(state);
+    applyAction(cuboid, action);
 }
 
 
