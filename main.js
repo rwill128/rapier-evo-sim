@@ -28,7 +28,7 @@ async function init() {
 
     const obstacleWidth = 20;
     const obstacleHeight = 20;
-    const sceneObjectPositions = generateRandomCuboidPositions(3, obstacleWidth, obstacleHeight, 20, world_size);
+    const sceneObjectPositions = generateRandomCuboidPositions(10, obstacleWidth, obstacleHeight, 20, world_size);
     sceneObjects = sceneObjectPositions.map(pos => createSceneObject(pos.x, pos.y, obstacleWidth, obstacleHeight));
 
 
@@ -45,7 +45,7 @@ async function init() {
     initInputHandler();
 
     function modifyCuboid(cuboid) {
-        cuboid.health -= 1000;
+        cuboid.health += 1000;
     }
 
     const animate = () => {
@@ -57,15 +57,15 @@ async function init() {
             let handle2IsSceneObject = false;
             let handle1IsCuboidObject = false;
             let handle2IsCuboidObject = false;
-            if (sceneObjectLookupBySensorCollider[handle1] != null ||
-                sceneObjectLookupBySensorCollider[handle1] != null ||
-                sceneObjectLookupBySensorCollider[handle1] != null) {
+            if (sceneObjectLookupBySensorCollider[String(handle1)] != null ||
+                sceneObjectLookupBySensorCollider[String(handle1)] != null ||
+                sceneObjectLookupBySensorCollider[String(handle1)] != null) {
                 handle1IsSceneObject = true;
             }
 
-            if (sceneObjectLookupBySensorCollider[handle2] != null ||
-                sceneObjectLookupBySensorCollider[handle2] != null ||
-                sceneObjectLookupBySensorCollider[handle2] != null) {
+            if (sceneObjectLookupBySensorCollider[String(handle2)] != null ||
+                sceneObjectLookupBySensorCollider[String(handle2)] != null ||
+                sceneObjectLookupBySensorCollider[String(handle2)] != null) {
                 handle2IsSceneObject = true;
             }
 
@@ -79,13 +79,13 @@ async function init() {
                 return;
             }
 
-            if (cuboidLookupByRigidBody[handle1] != null ||
-                cuboidLookupByCollider[handle1] != null) {
+            if (cuboidLookupByRigidBody[String(handle1)] != null ||
+                cuboidLookupByCollider[String(handle1)] != null) {
                 handle1IsCuboidObject = true;
             }
 
-            if (cuboidLookupByRigidBody[handle2] != null ||
-                cuboidLookupByCollider[handle2] != null) {
+            if (cuboidLookupByRigidBody[String(handle2)] != null ||
+                cuboidLookupByCollider[String(handle2)] != null) {
                 handle2IsCuboidObject = true;
             }
 
@@ -100,15 +100,16 @@ async function init() {
             }
             let touchedCuboid = undefined;
             if (handle1IsCuboidObject === true) {
-                touchedCuboid = cuboidLookupByCollider[handle1] || cuboidLookupByRigidBody[handle1];
+                touchedCuboid = cuboidLookupByCollider[String(handle1)] || cuboidLookupByRigidBody[String(handle1)];
             }
 
 
             if (handle2IsCuboidObject === true) {
-                touchedCuboid = cuboidLookupByCollider[handle2] || cuboidLookupByRigidBody[handle2];
+                touchedCuboid = cuboidLookupByCollider[String(handle2)] || cuboidLookupByRigidBody[String(handle2)];
             }
 
             if (touchedCuboid !== undefined) {
+                console.log("Found a cuboid and scene object collision: " + handle1 + " and " + handle2);
                 // Modify the cuboid touched by the sensor
                 modifyCuboid(touchedCuboid);
             } else {

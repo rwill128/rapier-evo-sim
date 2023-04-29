@@ -6,6 +6,7 @@ import {deselect, selectedCuboid} from "./inputHandler.js";
 
 let cuboidLookupByCollider = {};
 let cuboidLookupByRigidBody = {};
+let cuboidLookupByEyeCollider = {};
 let sceneObjectLookupBySensorCollider = {};
 let sceneObjectLookupByRigidBody = {};
 let sceneObjectLookupByCollider = {};
@@ -26,21 +27,37 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     const cuboidMesh = new THREE.Mesh(cuboidGeometry, cuboidMaterial);
     scene.add(cuboidMesh);
 
+    // Create an eye collider that is twice the size of the cuboid object.
+    let eyeColliderDesc = RAPIER.ColliderDesc.cuboid(width, height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
+    let eyeCollider = world.createCollider(eyeColliderDesc, rigidBody);
+
+    // Create a cuboid mesh and add it to the scene
+    const eyeGeometry = new THREE.BoxGeometry(2 * width, 2 * height, 0.1);
+    // Create an eye mesh material with transparency enabled
+    const eyeMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        transparent: true,
+        opacity: 0.1 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
+    });
+    const eyeMesh = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    scene.add(eyeMesh);
+
     const brain = createBrain(parentAgent);
 
     let age = 1;
     let children = 0;
 
-    let cuboid = {rigidBody, mesh: cuboidMesh, health, brain, collider, age, children};
-    cuboidLookupByCollider[collider.handle] = cuboid;
-    cuboidLookupByRigidBody[rigidBody.handle] = cuboid;
+    let cuboid = {rigidBody, mesh: cuboidMesh, eyeMesh: eyeMesh, health, brain, collider, age, children, eyeCollider: eyeCollider};
+    cuboidLookupByCollider[String(collider.handle)] = cuboid;
+    cuboidLookupByRigidBody[String(rigidBody.handle)] = cuboid;
+    cuboidLookupByEyeCollider[String(eyeCollider.handle)] = cuboid;
 
     return cuboid;
 }
 
 export function createSceneObject(x, y, width, height) {
     // Create a dynamic rigid-body.
-    let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y);
+    let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y).setAdditionalMass(1000);
     let rigidBody = world.createRigidBody(rigidBodyDesc);
 
     // Create a cuboid collider attached to the dynamic rigidBody.
@@ -70,9 +87,9 @@ export function createSceneObject(x, y, width, height) {
     scene.add(sensorMesh);
 
     let sceneObject = {rigidBody, mesh: cuboidMesh, sensorMesh: sensorMesh, sensorCollider};
-    sceneObjectLookupBySensorCollider[sensorCollider.handle] = sceneObject;
-    sceneObjectLookupByRigidBody[rigidBody.handle] = sceneObject;
-    sceneObjectLookupByCollider[collider.handle] = sceneObject;
+    sceneObjectLookupBySensorCollider[String(sensorCollider.handle)] = sceneObject;
+    sceneObjectLookupByRigidBody[String(rigidBody.handle)] = sceneObject;
+    sceneObjectLookupByCollider[String(collider.handle)] = sceneObject;
     return sceneObject;
 }
 
@@ -234,19 +251,24 @@ export function removeCuboid(cuboid) {
         deselect();
     }
 
-    delete cuboidLookupByCollider[cuboid.collider.handle];
-    delete cuboidLookupByRigidBody[cuboid.rigidBody.handle];
+    delete cuboidLookupByCollider[String(cuboid.collider.handle)];
+    delete cuboidLookupByRigidBody[String(cuboid.rigidBody.handle)];
+    delete cuboidLookupByEyeCollider[String(cuboid.eyeCollider.handle)];
 
     // Remove the rigid body from the physics world
     world.removeRigidBody(cuboid.rigidBody);
     world.removeCollider(cuboid.collider);
+    world.removeCollider(cuboid.eyeCollider);
 
     // Remove the mesh from the scene
     scene.remove(cuboid.mesh);
+    scene.remove(cuboid.eyeMesh);
 
     // Dispose of the geometry and material resources
     cuboid.mesh.geometry.dispose();
     cuboid.mesh.material.dispose();
+    cuboid.eyeMesh.geometry.dispose();
+    cuboid.eyeMesh.material.dispose();
 }
 
 

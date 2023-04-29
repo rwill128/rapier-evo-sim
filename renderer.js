@@ -32,11 +32,17 @@ function initRenderer(world_size = 20) {
 function render() {
 
     // Update the position and rotation of each cuboid object
-    for (const {rigidBody, mesh, age} of cuboids) {
+    for (const {rigidBody, mesh, eyeMesh, age} of cuboids) {
         const position = rigidBody.translation();
         const rotation = rigidBody.rotation(); // Get the rotation (in radians) from the rigid body
         mesh.position.set(position.x, position.y, 0);
         mesh.rotation.z = rotation; // Update the mesh rotation (z-axis for 2D)
+
+        eyeMesh.position.set(position.x, position.y, 0);
+        eyeMesh.rotation.z = rotation; // Update the eyeMesh rotation (z-axis for 2D)
+
+        const eyeColor = new THREE.Color(0x00ff00);
+        eyeMesh.material.color = eyeColor;
 
         if (mesh !== selectedCuboid?.mesh) {
             // Change the color based on the health or any other condition
