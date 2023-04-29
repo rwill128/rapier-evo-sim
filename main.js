@@ -34,14 +34,7 @@ async function init() {
     const cuboidPositions = generateRandomCuboidPositions(50, width, height, padding, world_size / 2);
     cuboids = cuboidPositions.map(pos => createCuboid(pos.x, pos.y, width, height, health));
 
-    // Create the event queue
-    // const eventQueue = new RAPIER.EventQueue();
-
     initInputHandler();
-
-    function modifyCuboid(cuboid) {
-        cuboid.health = -10;
-    }
 
     const animate = () => {
         requestAnimationFrame(animate);
@@ -55,16 +48,16 @@ async function init() {
         }
 
         // Process all vision for creatures
-        // for (const cuboid of cuboids) {
-        //     world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
-        //         if (otherCollider.cuboid) {
-        //             console.log("Saw a cuboid: " + otherCollider.cuboid)
-        //         } else {
-        //             console.log("Saw a noncuboid: " + otherCollider)
-        //         }
-        //
-        //     });
-        // }
+        for (const cuboid of cuboids) {
+            world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
+                if (otherCollider.cuboid) {
+                    console.log("Saw a cuboid: " + otherCollider.cuboid)
+                } else {
+                    console.log("Saw a noncuboid: " + otherCollider)
+                }
+
+            });
+        }
 
 
         for (const cuboid of cuboids) {
