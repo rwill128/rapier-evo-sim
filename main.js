@@ -1,6 +1,6 @@
-import {initInputHandler, onMouseClick, selectedCuboid, updateCamera, updateInfoWindow} from "./inputHandler.js";
-import {initRenderer, render, scene} from "./renderer.js";
-import {initPhysicsEngine, RAPIER, stepPhysics, world} from "./physicsEngine.js";
+import {initInputHandler, onMouseClick, updateCamera} from "./inputHandler.js";
+import {initRenderer, render} from "./renderer.js";
+import {initPhysicsEngine, world} from "./physicsEngine.js";
 import {generateRandomCuboidPositions, getRandomCuboidExcept} from "./utils.js";
 import {
     applyAction,
@@ -9,6 +9,7 @@ import {
     removeCuboid,
 } from "./cuboid.js";
 import {calculateEnvironmentalEffects, createSceneObject} from "./sceneObjects.js";
+import {updateInfoWindow} from "./infoWindow.js";
 
 let cuboids;
 let sceneObjects;
