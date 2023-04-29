@@ -47,10 +47,10 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     let age = 1;
     let children = 0;
 
+
+
     let cuboid = {rigidBody, mesh: cuboidMesh, eyeMesh: eyeMesh, health, brain, collider, age, children, eyeCollider: eyeCollider};
-    cuboidLookupByCollider[String(collider.handle)] = cuboid;
-    cuboidLookupByRigidBody[String(rigidBody.handle)] = cuboid;
-    cuboidLookupByEyeCollider[String(eyeCollider.handle)] = cuboid;
+    collider.cuboid = cuboid;
 
     return cuboid;
 }
@@ -86,10 +86,7 @@ export function createSceneObject(x, y, width, height) {
     const sensorMesh = new THREE.Mesh(sensorGeometry, sensorMaterial);
     scene.add(sensorMesh);
 
-    let sceneObject = {rigidBody, mesh: cuboidMesh, sensorMesh: sensorMesh, sensorCollider};
-    sceneObjectLookupBySensorCollider[String(sensorCollider.handle)] = sceneObject;
-    sceneObjectLookupByRigidBody[String(rigidBody.handle)] = sceneObject;
-    sceneObjectLookupByCollider[String(collider.handle)] = sceneObject;
+    let sceneObject = {rigidBody, collider: collider, mesh: cuboidMesh, sensorMesh: sensorMesh, sensorCollider: sensorCollider};
     return sceneObject;
 }
 
@@ -241,7 +238,7 @@ export function calculateEnvironmentalEffects(cuboid) {
     );
 
     // Provide a positive reward if the agent is within 10 units of the center
-    const reward = (distanceToTarget <= 60) ? 100 / distanceToTarget : -distanceToTarget;
+    const reward = (distanceToTarget <= 60) ? + 1 : -1;
 
     cuboid.health += reward;
 }
@@ -251,9 +248,9 @@ export function removeCuboid(cuboid) {
         deselect();
     }
 
-    delete cuboidLookupByCollider[String(cuboid.collider.handle)];
-    delete cuboidLookupByRigidBody[String(cuboid.rigidBody.handle)];
-    delete cuboidLookupByEyeCollider[String(cuboid.eyeCollider.handle)];
+    delete cuboidLookupByCollider[cuboid.collider.handle];
+    delete cuboidLookupByRigidBody[cuboid.rigidBody.handle];
+    delete cuboidLookupByEyeCollider[cuboid.eyeCollider.handle];
 
     // Remove the rigid body from the physics world
     world.removeRigidBody(cuboid.rigidBody);

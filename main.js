@@ -28,7 +28,7 @@ async function init() {
 
     const obstacleWidth = 20;
     const obstacleHeight = 20;
-    const sceneObjectPositions = generateRandomCuboidPositions(10, obstacleWidth, obstacleHeight, 20, world_size);
+    const sceneObjectPositions = generateRandomCuboidPositions(3, obstacleWidth, obstacleHeight, 20, world_size);
     sceneObjects = sceneObjectPositions.map(pos => createSceneObject(pos.x, pos.y, obstacleWidth, obstacleHeight));
 
 
@@ -40,82 +40,36 @@ async function init() {
     cuboids = cuboidPositions.map(pos => createCuboid(pos.x, pos.y, width, height, health));
 
     // Create the event queue
-    const eventQueue = new RAPIER.EventQueue();
+    // const eventQueue = new RAPIER.EventQueue();
 
     initInputHandler();
 
     function modifyCuboid(cuboid) {
-        cuboid.health += 1000;
+        cuboid.health = -10;
     }
 
     const animate = () => {
         requestAnimationFrame(animate);
-        world.step(eventQueue);
-
-        eventQueue.drainCollisionEvents((handle1, handle2, started) => {
-            let handle1IsSceneObject = false;
-            let handle2IsSceneObject = false;
-            let handle1IsCuboidObject = false;
-            let handle2IsCuboidObject = false;
-            if (sceneObjectLookupBySensorCollider[String(handle1)] != null ||
-                sceneObjectLookupBySensorCollider[String(handle1)] != null ||
-                sceneObjectLookupBySensorCollider[String(handle1)] != null) {
-                handle1IsSceneObject = true;
-            }
-
-            if (sceneObjectLookupBySensorCollider[String(handle2)] != null ||
-                sceneObjectLookupBySensorCollider[String(handle2)] != null ||
-                sceneObjectLookupBySensorCollider[String(handle2)] != null) {
-                handle2IsSceneObject = true;
-            }
-
-            if (!handle1IsSceneObject && !handle2IsSceneObject) {
-                console.log("Couldn't find a scene object for this collision event. Handles were: " + handle1 + " and " + handle2);
-                return;
-            }
-
-            if (handle1IsSceneObject && handle2IsSceneObject) {
-                console.log("Both handles were related to scene objects: " + handle1 + " and " + handle2);
-                return;
-            }
-
-            if (cuboidLookupByRigidBody[String(handle1)] != null ||
-                cuboidLookupByCollider[String(handle1)] != null) {
-                handle1IsCuboidObject = true;
-            }
-
-            if (cuboidLookupByRigidBody[String(handle2)] != null ||
-                cuboidLookupByCollider[String(handle2)] != null) {
-                handle2IsCuboidObject = true;
-            }
-
-            if (!handle1IsCuboidObject && !handle2IsCuboidObject) {
-                console.log("Neither handle was a cuboid object: " + handle1 + " and " + handle2);
-                return;
-            }
-
-            if (handle1IsCuboidObject && handle2IsCuboidObject) {
-                console.log("Both handles were cuboid objects: " + handle1 + " and " + handle2);
-                return;
-            }
-            let touchedCuboid = undefined;
-            if (handle1IsCuboidObject === true) {
-                touchedCuboid = cuboidLookupByCollider[String(handle1)] || cuboidLookupByRigidBody[String(handle1)];
-            }
 
 
-            if (handle2IsCuboidObject === true) {
-                touchedCuboid = cuboidLookupByCollider[String(handle2)] || cuboidLookupByRigidBody[String(handle2)];
-            }
+        // Process all sceneObject effects
+        for (const sceneObject of sceneObjects) {
+            world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
+                otherCollider.cuboid.health += 1;
+            });
+        }
 
-            if (touchedCuboid !== undefined) {
-                console.log("Found a cuboid and scene object collision: " + handle1 + " and " + handle2);
-                // Modify the cuboid touched by the sensor
-                modifyCuboid(touchedCuboid);
-            } else {
-                console.log("We found a null cuboid when we expected one!")
-            }
-        });
+        // Process all vision for creatures
+        // for (const cuboid of cuboids) {
+        //     world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
+        //         if (otherCollider.cuboid) {
+        //             console.log("Saw a cuboid: " + otherCollider.cuboid)
+        //         } else {
+        //             console.log("Saw a noncuboid: " + otherCollider)
+        //         }
+        //
+        //     });
+        // }
 
 
         for (const cuboid of cuboids) {
@@ -143,6 +97,7 @@ async function init() {
             }
         }
 
+        world.step();
         updateCamera();
         render();
         updateInfoWindow();
