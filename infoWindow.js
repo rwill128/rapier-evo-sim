@@ -26,6 +26,7 @@ export function updateInfoWindow() {
       <p>Age: ${age}</p>
       <p>Children: ${children}</p>
       <p>Sensory inputs: ${brain.sensoryInputs}</p>
+      <p>Num hidden nodes: ${brain.numNodesInHiddenLayer}</p>
       <p>First filter: ${brain.firstFilterType}</p>
       <p>Second filter: ${brain.secondFilterType}</p>
       <p>Action types: ${brain.actionTypes}</p>
@@ -39,6 +40,7 @@ export function updateInfoWindow() {
         infoWindow.innerHTML = `<p>No cuboid selected.</p>`;
     }
 }
+
 
 function weightsToTable(weights, biases) {
     const {n, d, w} = weights;

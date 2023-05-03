@@ -1,15 +1,14 @@
 import {initInputHandler, onMouseClick, updateCamera} from "./inputHandler.js";
 import {initRenderer, render} from "./renderer.js";
 import {initPhysicsEngine, world} from "./physicsEngine.js";
-import {generateRandomCuboidPositions, getRandomCuboidExcept} from "./utils.js";
+import {generateRandomPosition, getRandomCuboidExcept} from "./utils.js";
 import {
-    applyAction,
-    createCuboid,
-    getState, reactToWorld,
+    createCuboid, isSpaceEmpty, reactToWorld,
     removeCuboid,
 } from "./cuboid.js";
 import {calculateEnvironmentalEffects, createSceneObject} from "./sceneObjects.js";
 import {updateInfoWindow} from "./infoWindow.js";
+import {updateWorldInfoWindow} from "./worldInfoWindow.js";
 
 let cuboids;
 let sceneObjects;
@@ -21,18 +20,65 @@ async function init() {
 
     document.addEventListener('click', onMouseClick, false);
 
-    const obstacleWidth = 20;
-    const obstacleHeight = 20;
-    const sceneObjectPositions = generateRandomCuboidPositions(3, obstacleWidth, obstacleHeight, 20, world_size);
-    sceneObjects = sceneObjectPositions.map(pos => createSceneObject(pos.x, pos.y, obstacleWidth, obstacleHeight));
 
 
     const width = 1;
     const height = 1;
     const padding = 0.1;
+    const worldSize = world_size / 2;
+    const numSceneObjects = 3;
+    const obstacleWidth = 20;
+    const obstacleHeight = 20;
+    sceneObjects = [];
+
+    for (let i = 0; i < numSceneObjects; i++) {
+        let attempts = 0;
+        let maxAttempts = 10;
+        let createdSceneObject = false;
+
+        while (!createdSceneObject && attempts < maxAttempts) {
+            const pos = generateRandomPosition(worldSize, obstacleWidth, obstacleHeight);
+
+            if (isSpaceEmpty(pos.x, pos.y, obstacleWidth, obstacleHeight, padding)) {
+                const sceneObject = createSceneObject(pos.x, pos.y, obstacleWidth, obstacleHeight);
+                sceneObjects.push(sceneObject);
+                createdSceneObject = true;
+            }
+
+            attempts++;
+        }
+
+        if (!createdSceneObject) {
+            console.log("Failed to create a sceneObject after", maxAttempts, "attempts.");
+        }
+    }
+
     const health = 100;
-    const cuboidPositions = generateRandomCuboidPositions(50, width, height, padding, world_size / 2);
-    cuboids = cuboidPositions.map(pos => createCuboid(pos.x, pos.y, width, height, health));
+    const numCuboids = 150;
+    cuboids = [];
+
+    for (let i = 0; i < numCuboids; i++) {
+        let attempts = 0;
+        let maxAttempts = 10;
+        let createdCuboid = false;
+
+        while (!createdCuboid && attempts < maxAttempts) {
+            const pos = generateRandomPosition(worldSize, width, height);
+
+            if (isSpaceEmpty(pos.x, pos.y, width, height, padding)) {
+                const cuboid = createCuboid(pos.x, pos.y, width, height, health);
+                cuboids.push(cuboid);
+                createdCuboid = true;
+            }
+
+            attempts++;
+        }
+
+        if (!createdCuboid) {
+            console.log("Failed to create a cuboid after", maxAttempts, "attempts.");
+        }
+    }
+
 
     initInputHandler();
 
@@ -48,16 +94,16 @@ async function init() {
         }
 
         // Process all vision for creatures
-        for (const cuboid of cuboids) {
-            world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
-                if (otherCollider.cuboid) {
-                    console.log("Saw a cuboid: " + otherCollider.cuboid)
-                } else {
-                    console.log("Saw a noncuboid: " + otherCollider)
-                }
-
-            });
-        }
+        // for (const cuboid of cuboids) {
+        //     world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
+        //         if (otherCollider.cuboid) {
+        //             console.log("Saw a cuboid: " + otherCollider.cuboid)
+        //         } else {
+        //             console.log("Saw a noncuboid: " + otherCollider)
+        //         }
+        //
+        //     });
+        // }
 
 
         for (const cuboid of cuboids) {
@@ -66,17 +112,17 @@ async function init() {
 
             // Check if the health is less than or equal to 0 and replace the cuboid
             if (cuboid.health <= 0) {
-                removeCuboid(cuboid);
-
                 // Generate a new random position for the new cuboid
-                const newPosition = generateRandomCuboidPositions(1, width, height, padding)[0];
+                const newPosition = generateRandomPosition(worldSize, width, height);
 
-                // Replace the cuboid with a new one
-                let procreator = getRandomCuboidExcept(cuboids, cuboid);
-                procreator.children++;
-                const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, procreator.brain);
-                const index = cuboids.indexOf(cuboid);
-                cuboids[index] = newCuboid;
+                if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
+                    removeCuboid(cuboid);
+                    let procreator = getRandomCuboidExcept(cuboids, cuboid);
+                    procreator.children++;
+                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, procreator.brain);
+                    const index = cuboids.indexOf(cuboid);
+                    cuboids[index] = newCuboid;
+                }
             }
         }
 
@@ -84,6 +130,7 @@ async function init() {
         updateCamera();
         render();
         updateInfoWindow();
+        updateWorldInfoWindow();
     };
 
     animate();

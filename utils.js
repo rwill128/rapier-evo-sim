@@ -3,6 +3,13 @@ export function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+export function generateRandomPosition(worldSize, width, height) {
+    const halfWidth = worldSize / 2;
+    const x = Math.random() * (worldSize - width) - halfWidth;
+    const y = Math.random() * (worldSize - height) - halfWidth;
+    return {x, y};
+}
+
 export function generateRandomCuboidPositions(count, width, height, padding, range = 200) {
     const positions = [];
 

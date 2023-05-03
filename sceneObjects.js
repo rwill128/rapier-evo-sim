@@ -51,7 +51,7 @@ export function calculateEnvironmentalEffects(cuboid) {
     );
 
     // Provide a positive reward if the agent is within 10 units of the center
-    const reward = (distanceToTarget <= 60) ? +1 : -1;
+    const reward = (distanceToTarget <= 60) ? +1 : -distanceToTarget;
 
     cuboid.health += reward;
 }
