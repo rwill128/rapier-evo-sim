@@ -3,6 +3,7 @@ import {RAPIER, world} from "./physicsEngine.js";
 import {createBrain} from "./brain.js";
 import {deselect, selectedCuboid} from "./inputHandler.js";
 
+let colliderToCuboid = {}
 
 export function createCuboid(x, y, width, height, health, parentAgent = null) {
     // Create a dynamic rigid-body.
@@ -39,7 +40,7 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     let age = 1;
     let children = 0;
 
-    return {
+    let cuboid = {
         rigidBody: rigidBody,
         mesh: cuboidMesh,
         eyeMesh: eyeMesh,
@@ -50,6 +51,8 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
         children,
         eyeCollider: eyeCollider
     };
+    colliderToCuboid[collider.handle] = cuboid;
+    return cuboid;
 }
 
 export function getState(cuboid) {
@@ -140,4 +143,6 @@ export function removeCuboid(cuboid) {
     cuboid.eyeMesh.geometry.dispose();
     cuboid.eyeMesh.material.dispose();
 }
+
+export {colliderToCuboid}
 

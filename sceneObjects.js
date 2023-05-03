@@ -44,14 +44,5 @@ export function createSceneObject(x, y, width, height) {
 
 export function calculateEnvironmentalEffects(cuboid) {
     cuboid.age++;
-    const targetPosition = {x: 0, y: 0};
-    const distanceToTarget = Math.sqrt(
-        Math.pow(targetPosition.x - cuboid.rigidBody.translation().x, 2) +
-        Math.pow(targetPosition.y - cuboid.rigidBody.translation().y, 2)
-    );
-
-    // Provide a positive reward if the agent is within 10 units of the center
-    const reward = (distanceToTarget <= 60) ? +1 : -distanceToTarget;
-
-    cuboid.health += reward;
+    cuboid.health -= 1;
 }

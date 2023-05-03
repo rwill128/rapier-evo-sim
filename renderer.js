@@ -17,13 +17,6 @@ function initRenderer(world_size) {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Create a safe zone mesh and add it to the scene
-    const safeZoneGeometry = new THREE.CircleGeometry(60, 32);
-    const safeZoneMaterial = new THREE.MeshBasicMaterial({ color: 0x000082 });
-    const safeZoneMesh = new THREE.Mesh(safeZoneGeometry, safeZoneMaterial);
-    safeZoneMesh.position.set(0, 0, -1);
-    scene.add(safeZoneMesh);
-
     camera.position.z = 10;
     camera.zoom = .5;
     camera.updateProjectionMatrix();

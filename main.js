@@ -7,6 +7,7 @@ import {
     isSpaceEmpty
 } from "./utils.js";
 import {
+    colliderToCuboid,
     createCuboid, reactToWorld,
     removeCuboid,
 } from "./cuboid.js";
@@ -26,11 +27,9 @@ async function init() {
 
 
 
-    const width = 1;
-    const height = 1;
     const padding = 0.1;
     const worldSize = world_size / 2;
-    const numSceneObjects = 3;
+    const numSceneObjects = 6;
     const obstacleWidth = 20;
     const obstacleHeight = 20;
     sceneObjects = [];
@@ -57,6 +56,9 @@ async function init() {
         }
     }
 
+
+    const width = 1;
+    const height = 1;
     const health = 100;
     const numCuboids = 150;
     cuboids = [];
@@ -93,21 +95,23 @@ async function init() {
         // Process all sceneObject effects
         for (const sceneObject of sceneObjects) {
             world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
-                otherCollider.cuboid.health += 2;
+                if (colliderToCuboid[otherCollider.handle] !== null) {
+                    colliderToCuboid[otherCollider.handle].health += 2;
+                }
             });
         }
 
         // Process all vision for creatures
-        // for (const cuboid of cuboids) {
-        //     world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
-        //         if (otherCollider.cuboid) {
-        //             console.log("Saw a cuboid: " + otherCollider.cuboid)
-        //         } else {
-        //             console.log("Saw a noncuboid: " + otherCollider)
-        //         }
-        //
-        //     });
-        // }
+        for (const cuboid of cuboids) {
+            world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
+                if (colliderToCuboid.hasOwnProperty(otherCollider.handle)) {
+                    console.log("Saw a cuboid: " + colliderToCuboid[otherCollider.handle])
+                } else {
+                    console.log("Saw a noncuboid: " + otherCollider)
+                }
+
+            });
+        }
 
 
         for (const cuboid of cuboids) {
