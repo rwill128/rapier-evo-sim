@@ -8,6 +8,7 @@ export function createSceneObject(x, y, width, height) {
 
     // Create a cuboid collider attached to the dynamic rigidBody.
     let colliderDesc = RAPIER.ColliderDesc.cuboid(width / 2, height / 2);
+    RAPIER.ActiveCollisionTypes.DEFAULT | RAPIER.ActiveCollisionTypes.KINEMATIC_FIXED
     let collider = world.createCollider(colliderDesc, rigidBody);
 
 
@@ -32,14 +33,13 @@ export function createSceneObject(x, y, width, height) {
     const sensorMesh = new THREE.Mesh(sensorGeometry, sensorMaterial);
     scene.add(sensorMesh);
 
-    let sceneObject = {
-        rigidBody,
+    return {
+        rigidBody: rigidBody,
         collider: collider,
         mesh: cuboidMesh,
         sensorMesh: sensorMesh,
         sensorCollider: sensorCollider
     };
-    return sceneObject;
 }
 
 export function calculateEnvironmentalEffects(cuboid) {

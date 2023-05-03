@@ -1,7 +1,11 @@
 import {initInputHandler, onMouseClick, updateCamera} from "./inputHandler.js";
 import {initRenderer, render} from "./renderer.js";
 import {initPhysicsEngine, world} from "./physicsEngine.js";
-import {generateRandomPosition, getRandomCuboidExcept, isSpaceEmpty} from "./utils.js";
+import {
+    generateRandomPosition,
+    generateRandomPositionWithinDistance,
+    isSpaceEmpty
+} from "./utils.js";
 import {
     createCuboid, reactToWorld,
     removeCuboid,
@@ -111,20 +115,25 @@ async function init() {
             calculateEnvironmentalEffects(cuboid);
 
             // Check if the health is less than or equal to 0 and replace the cuboid
-            if (cuboid.health <= 0) {
+            if (cuboid.health > 1000) {
                 // Generate a new random position for the new cuboid
-                const newPosition = generateRandomPosition(worldSize, width, height);
+                const newPosition = generateRandomPositionWithinDistance(cuboid.rigidBody.translation(), 3);
 
                 if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
-                    removeCuboid(cuboid);
-                    let procreator = getRandomCuboidExcept(cuboids, cuboid);
-                    procreator.children++;
-                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, procreator.brain);
-                    const index = cuboids.indexOf(cuboid);
-                    cuboids[index] = newCuboid;
+                    cuboid.health -= 900
+                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, cuboid.brain);
+                    cuboids.push(newCuboid);
                 }
             }
+
+            if (cuboid.health < 0) {
+                removeCuboid(cuboid);
+                const index = cuboids.indexOf(cuboid);
+                cuboids[index] = null;
+            }
         }
+
+        cuboids = cuboids.filter(cuboid => cuboid !== null);
 
         world.step();
         updateCamera();

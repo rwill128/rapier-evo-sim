@@ -39,12 +39,17 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     let age = 1;
     let children = 0;
 
-
-
-    let cuboid = {rigidBody, mesh: cuboidMesh, eyeMesh: eyeMesh, health, brain, collider: collider, age, children, eyeCollider: eyeCollider};
-    collider.cuboid = cuboid;
-
-    return cuboid;
+    return {
+        rigidBody: rigidBody,
+        mesh: cuboidMesh,
+        eyeMesh: eyeMesh,
+        health,
+        brain,
+        collider: collider,
+        age,
+        children,
+        eyeCollider: eyeCollider
+    };
 }
 
 export function getState(cuboid) {

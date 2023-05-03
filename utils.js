@@ -12,6 +12,18 @@ export function generateRandomPosition(worldSize, width, height) {
     return {x, y};
 }
 
+export function generateRandomPositionWithinDistance(point, distance) {
+    const angle = Math.random() * Math.PI * 2; // Random angle in radians
+    const dx = distance * Math.cos(angle); // Change in x
+    const dy = distance * Math.sin(angle); // Change in y
+
+    const x = point.x + dx;
+    const y = point.y + dy;
+
+    return { x, y };
+}
+
+
 export function isSpaceEmpty(x, y, width, height, padding = 0.1) {
     // Create a slightly larger cuboid shape
     const paddedWidth = width + padding;
@@ -25,6 +37,10 @@ export function isSpaceEmpty(x, y, width, height, padding = 0.1) {
     let isEmpty = true
 
     world.intersectionsWithShape(shapePos, shapeRot, shape, (handle) => {
+        if (handle.isSensor()) {
+            return true;
+        }
+
         isEmpty = false;
         return false; // Return `false` instead if we want to stop searching for other colliders that contain this point.
     });
