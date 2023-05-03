@@ -5,7 +5,7 @@ import {selectedCuboid} from "./inputHandler.js";
 let scene, camera, renderer;
 let eyeLines = [];
 
-function initRenderer(world_size = 20) {
+function initRenderer(world_size) {
     scene = new THREE.Scene();
     const aspectRatio = window.innerWidth / window.innerHeight;
     const viewWidth = world_size; // Increase this value to view a wider portion of the world

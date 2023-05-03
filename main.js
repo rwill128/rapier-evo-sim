@@ -1,9 +1,9 @@
 import {initInputHandler, onMouseClick, updateCamera} from "./inputHandler.js";
 import {initRenderer, render} from "./renderer.js";
 import {initPhysicsEngine, world} from "./physicsEngine.js";
-import {generateRandomPosition, getRandomCuboidExcept} from "./utils.js";
+import {generateRandomPosition, getRandomCuboidExcept, isSpaceEmpty} from "./utils.js";
 import {
-    createCuboid, isSpaceEmpty, reactToWorld,
+    createCuboid, reactToWorld,
     removeCuboid,
 } from "./cuboid.js";
 import {calculateEnvironmentalEffects, createSceneObject} from "./sceneObjects.js";
@@ -15,7 +15,7 @@ let sceneObjects;
 
 async function init() {
     const world_size = 200
-    await initPhysicsEngine(world_size)
+    await initPhysicsEngine()
     initRenderer(world_size);
 
     document.addEventListener('click', onMouseClick, false);

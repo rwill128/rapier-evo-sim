@@ -4,32 +4,6 @@ import {createBrain} from "./brain.js";
 import {deselect, selectedCuboid} from "./inputHandler.js";
 
 
-export function isSpaceEmpty(x, y, width, height, padding = 0.1) {
-    // Create a slightly larger cuboid shape
-    const paddedWidth = width + padding;
-    const paddedHeight = height + padding;
-    const shape = new RAPIER.Cuboid(paddedWidth, paddedHeight);
-
-    // Set the initial position, rotation, and zero velocity
-    const shapePos = { x: x, y: y };
-    const shapeRot = 0;
-
-    let isEmpty = true
-
-    world.intersectionsWithShape(shapePos, shapeRot, shape, (handle) => {
-        console.log("The collider", handle, "intersects our shape.");
-        isEmpty = false;
-        return false; // Return `false` instead if we want to stop searching for other colliders that contain this point.
-    });
-
-    if (isEmpty === false) {
-        console.log("Tried to find empty space at " + x + ", " + y + " but collision was detected.")
-    }
-
-    return isEmpty;
-}
-
-
 export function createCuboid(x, y, width, height, health, parentAgent = null) {
     // Create a dynamic rigid-body.
     let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y);

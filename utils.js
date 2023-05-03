@@ -1,4 +1,6 @@
 // utils.js
+import {RAPIER, world} from "./physicsEngine.js";
+
 export function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -10,29 +12,28 @@ export function generateRandomPosition(worldSize, width, height) {
     return {x, y};
 }
 
-export function generateRandomCuboidPositions(count, width, height, padding, range = 200) {
-    const positions = [];
+export function isSpaceEmpty(x, y, width, height, padding = 0.1) {
+    // Create a slightly larger cuboid shape
+    const paddedWidth = width + padding;
+    const paddedHeight = height + padding;
+    const shape = new RAPIER.Cuboid(paddedWidth / 2, paddedHeight / 2);
 
-    while (positions.length < count) {
-        let x = (Math.random() * range) - range/2; // Random x between -9 and 9
-        let y = (Math.random() * range) - range/2; // Random y between -4 and 4
+    // Set the initial position, rotation, and zero velocity
+    const shapePos = { x: x, y: y };
+    const shapeRot = 0;
 
-        let overlaps = false;
-        for (const pos of positions) {
-            const dx = Math.abs(x - pos.x);
-            const dy = Math.abs(y - pos.y);
-            if (dx < width + padding && dy < height + padding) {
-                overlaps = true;
-                break;
-            }
-        }
+    let isEmpty = true
 
-        if (!overlaps) {
-            positions.push({x, y});
-        }
-    }
+    world.intersectionsWithShape(shapePos, shapeRot, shape, (handle) => {
+        isEmpty = false;
+        return false; // Return `false` instead if we want to stop searching for other colliders that contain this point.
+    });
 
-    return positions;
+    // if (isEmpty === false) {
+    //     console.log("Tried to find empty space at " + x + ", " + y + " but collision was detected.")
+    // }
+
+    return isEmpty;
 }
 
 export function getRandomCuboidExcept(cuboidsList, excludeCuboid) {
