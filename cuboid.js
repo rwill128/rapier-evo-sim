@@ -96,9 +96,9 @@ export function getVision(cuboid) {
         world.intersectionsWith(eyeCollider, (otherCollider) => {
             if (otherCollider.parent().userData !== undefined) {
                 const otherCuboid = otherCollider.parent().userData;
-                eyeObservations.push(cuboid.rigidBody.translation().x - otherCuboid.rigidBody.translation().x);
-                eyeObservations.push(cuboid.rigidBody.translation().y - otherCuboid.rigidBody.translation().y);
-                eyeObservations.push(CREATURE_TYPES.indexOf(otherCuboid.rigidBody.interactionType));
+                eyeObservations.push(otherCuboid.rigidBody.translation().x - cuboid.rigidBody.translation().x);
+                eyeObservations.push(otherCuboid.rigidBody.translation().y - cuboid.rigidBody.translation().y);
+                eyeObservations.push(CREATURE_TYPES.indexOf(otherCuboid.interactionType));
                 return false;
             }
             return true;
@@ -122,8 +122,8 @@ export function applyAction(cuboid, action) {
     const actionTypes = cuboid.brain.actionTypes;
     const orientation = cuboid.rigidBody.rotation();
 
-    const linearImpulseStrength = 0.1;
-    const rotationalImpulseStrength = 0.005;
+    const linearImpulseStrength = 0.5;
+    const rotationalImpulseStrength = 0.05;
 
     for (let i = 0; i < actionTypes.length; i++) {
         const actionType = actionTypes[i];
@@ -159,6 +159,7 @@ export function reactToWorld(cuboid) {
     const state = getState(cuboid);
     const eyeInputs =  getVision(cuboid);
     const action = cuboid.brain.react(state, eyeInputs);
+    cuboid.brain.lastAction = action;
     applyAction(cuboid, action);
 }
 

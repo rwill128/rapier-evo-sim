@@ -19,11 +19,11 @@ export function createSceneObject(x, y, width, height) {
     scene.add(cuboidMesh);
 
     // Create a sensor collider that is twice the size of the scene object.
-    let sensorColliderDesc = RAPIER.ColliderDesc.cuboid(2/2 * width, 2/2 * height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
+    let sensorColliderDesc = RAPIER.ColliderDesc.cuboid(3/2 * width, 3/2 * height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
     let sensorCollider = world.createCollider(sensorColliderDesc, rigidBody);
 
     // Create a cuboid mesh and add it to the scene
-    const sensorGeometry = new THREE.BoxGeometry(2 * width, 2 * height, 0.1);
+    const sensorGeometry = new THREE.BoxGeometry(3 * width, 3 * height, 0.1);
     // Create a sensor mesh material with transparency enabled
     const sensorMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
@@ -44,5 +44,9 @@ export function createSceneObject(x, y, width, height) {
 
 export function calculateEnvironmentalEffects(cuboid) {
     cuboid.age++;
-    cuboid.health -= .1;
+    if (cuboid.interactionType === "Plant") {
+        cuboid.health -= 1;
+    } else {
+        cuboid.health -= .1
+    }
 }

@@ -15,6 +15,8 @@ function initRenderer(world_size) {
     camera = new THREE.OrthographicCamera(-viewWidth / 2, viewWidth / 2, viewHeight / 2, -viewHeight / 2, 0.1, 100);
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0xFFFFFF, 1);
+
     document.body.appendChild(renderer.domElement);
 
     camera.position.z = 10;

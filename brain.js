@@ -72,16 +72,17 @@ class Brain {
     }
 
     filter(G, matrix, filterType) {
-        switch (filterType) {
-            case "tanh":
-                return G.tanh(matrix);
-            case "sigmoid":
-                return G.sigmoid(matrix);
-            case "relu":
-                return G.relu(matrix);
-            default:
-                throw new Error("Invalid filter type");
-        }
+        return G.tanh(matrix);
+        // switch (filterType) {
+        //     case "tanh":
+        //         return G.tanh(matrix);
+        //     case "sigmoid":
+        //         return G.sigmoid(matrix);
+        //     case "relu":
+        //         return G.relu(matrix);
+        //     default:
+        //         throw new Error("Invalid filter type");
+        // }
     }
 
     react(sList, eyeList) {

@@ -30,6 +30,7 @@ export function updateInfoWindow() {
       <p>First filter: ${brain.firstFilterType}</p>
       <p>Second filter: ${brain.secondFilterType}</p>
       <p>Action types: ${brain.actionTypes}</p>
+      <p>Last Actions: ${brain.lastAction}</p>
       <h3>Brains Weights</h3>
         <h4>Inputs</h4>
         ${actorWeights1Table}

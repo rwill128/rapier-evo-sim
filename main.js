@@ -13,9 +13,10 @@ import {
 import {calculateEnvironmentalEffects, createSceneObject} from "./sceneObjects.js";
 import {updateInfoWindow} from "./infoWindow.js";
 import {updateWorldInfoWindow} from "./worldInfoWindow.js";
+import {SceneObjectsManager} from "./sceneObjectsManager.js";
 
 let cuboids;
-let sceneObjects;
+let sceneObjects = []
 
 async function init() {
     const world_size = 300
@@ -23,41 +24,13 @@ async function init() {
     initRenderer(world_size);
 
     document.addEventListener('click', onMouseClick, false);
-
-
-    const padding = 0.1;
-    const worldSize = world_size / 2;
-    const numSceneObjects = 2;
-    const obstacleWidth = 20;
-    const obstacleHeight = 20;
-    sceneObjects = [];
-
-    for (let i = 0; i < numSceneObjects; i++) {
-        let attempts = 0;
-        let maxAttempts = 10;
-        let createdSceneObject = false;
-
-        while (!createdSceneObject && attempts < maxAttempts) {
-            const pos = generateRandomPosition(worldSize, obstacleWidth, obstacleHeight);
-
-            if (isSpaceEmpty(pos.x, pos.y, obstacleWidth, obstacleHeight, padding)) {
-                const sceneObject = createSceneObject(pos.x, pos.y, obstacleWidth, obstacleHeight);
-                sceneObjects.push(sceneObject);
-                createdSceneObject = true;
-            }
-
-            attempts++;
-        }
-
-        if (!createdSceneObject) {
-            console.log("Failed to create a sceneObject after", maxAttempts, "attempts.");
-        }
-    }
+    const sceneObjectsManager = new SceneObjectsManager(world_size);
 
 
     const width = 1;
     const height = 1;
     const health = 100;
+    const padding = .1;
     const numCuboids = 150;
     cuboids = [];
 
@@ -67,7 +40,7 @@ async function init() {
         let createdCuboid = false;
 
         while (!createdCuboid && attempts < maxAttempts) {
-            const pos = generateRandomPosition(worldSize, width, height);
+            const pos = generateRandomPosition(world_size/2, width, height);
 
             if (isSpaceEmpty(pos.x, pos.y, width, height, padding)) {
                 const cuboid = createCuboid(pos.x, pos.y, width, height, health);
@@ -90,15 +63,7 @@ async function init() {
         requestAnimationFrame(animate);
 
 
-        // Process all sceneObject effects
-        for (const sceneObject of sceneObjects) {
-            world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
-                if (otherCollider.parent().userData.interactionType === "Plant") {
-                    const affectedCuboid = otherCollider.parent().userData;
-                    affectedCuboid.health += 2;
-                }
-            });
-        }
+        sceneObjectsManager.update();
 
 
         for (const cuboid of cuboids) {
@@ -126,7 +91,7 @@ async function init() {
                 // Generate a new random position for the new cuboid
                 const newPosition = generateRandomPositionWithinDistance(cuboid.rigidBody.translation(), 3);
 
-                if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
+                if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding) && cuboids.length < 500) {
                     cuboid.health -= 900
                     const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, cuboid);
                     cuboids.push(newCuboid);
@@ -143,7 +108,7 @@ async function init() {
         cuboids = cuboids.filter(cuboid => cuboid !== null);
 
         // Occasionally sprinkle in some genetic diversity
-        if (Math.random() < .01) {
+        if (Math.random() < .05) {
             const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
 
             if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
