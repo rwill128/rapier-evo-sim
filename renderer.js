@@ -34,14 +34,14 @@ function render() {
         eyeMesh.position.set(position.x, position.y, 0);
         eyeMesh.rotation.z = rotation; // Update the eyeMesh rotation (z-axis for 2D)
 
-        const eyeColor = new THREE.Color(0x00ff00);
+        const eyeColor = new THREE.Color(0x48e870);
         eyeMesh.material.color = eyeColor;
 
         if (mesh !== selectedCuboid?.mesh) {
             // Change the color based on the health or any other condition
             // For example, you can interpolate the color between red and brown based on the health percentage
             const healthPercentage = age / 10000; // Assuming maximum health is 100
-            const color = new THREE.Color().lerpColors(new THREE.Color(0x964B00), new THREE.Color(0x00ff00), healthPercentage);
+            const color = new THREE.Color(0x27b049);
             mesh.material.color = color;
         }
     }
@@ -52,13 +52,13 @@ function render() {
         mesh.position.set(position.x, position.y, 0);
         mesh.rotation.z = rotation; // Update the mesh rotation (z-axis for 2D)
 
-        const color = new THREE.Color(0x00ff00);
+        const color = new THREE.Color(0x785f1c);
         mesh.material.color = color;
 
         sensorMesh.position.set(position.x, position.y, 0);
         sensorMesh.rotation.z = rotation; // Update the sensorMesh rotation (z-axis for 2D)
 
-        const sensorColor = new THREE.Color(0x00ff00);
+        const sensorColor = new THREE.Color(0xbf8f0a);
         sensorMesh.material.color = sensorColor;
     }
 

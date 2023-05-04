@@ -1,10 +1,6 @@
 // utils.js
 import {RAPIER, world} from "./physicsEngine.js";
 
-export function getRandomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
 export function generateRandomPosition(worldSize, width, height) {
     const halfWidth = worldSize / 2;
     const x = Math.random() * (worldSize - width) - halfWidth;
@@ -22,7 +18,6 @@ export function generateRandomPositionWithinDistance(point, distance) {
 
     return { x, y };
 }
-
 
 export function isSpaceEmpty(x, y, width, height, padding = 0.1) {
     // Create a slightly larger cuboid shape
@@ -50,21 +45,4 @@ export function isSpaceEmpty(x, y, width, height, padding = 0.1) {
     // }
 
     return isEmpty;
-}
-
-export function getRandomCuboidExcept(cuboidsList, excludeCuboid) {
-    // Filter out the excluded cuboid and sort the remaining cuboids by health in descending order
-    const sortedCuboids = cuboidsList.filter(cuboid => cuboid !== excludeCuboid).sort((a, b) => b.age - a.age);
-
-    // If there are no remaining cuboids, return null
-    if (sortedCuboids.length === 0) {
-        return null;
-    }
-
-    // Get the top 5 healthiest cuboids, or all remaining cuboids if there are fewer than 5
-    const topCuboids = sortedCuboids.slice(0, Math.min(sortedCuboids.length, 5));
-
-    // Choose a random cuboid from the top 5 healthiest cuboids
-    const randomIndex = Math.floor(Math.random() * topCuboids.length);
-    return topCuboids[randomIndex];
 }

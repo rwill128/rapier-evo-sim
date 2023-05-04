@@ -102,16 +102,15 @@ async function init() {
         }
 
         // Process all vision for creatures
-        for (const cuboid of cuboids) {
-            world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
-                if (colliderToCuboid.hasOwnProperty(otherCollider.handle)) {
-                    console.log("Saw a cuboid: " + colliderToCuboid[otherCollider.handle])
-                } else {
-                    console.log("Saw a noncuboid: " + otherCollider)
-                }
-
-            });
-        }
+        // for (const cuboid of cuboids) {
+        //     world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
+        //         if (colliderToCuboid.hasOwnProperty(otherCollider.handle)) {
+        //             console.log("Saw a cuboid: " + colliderToCuboid[otherCollider.handle])
+        //         } else {
+        //             console.log("Saw a noncuboid: " + otherCollider)
+        //         }
+        //     });
+        // }
 
 
         for (const cuboid of cuboids) {
