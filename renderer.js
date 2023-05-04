@@ -33,14 +33,14 @@ function render() {
         mesh.position.set(position.x, position.y, 0);
         mesh.rotation.z = rotation; // Update the mesh rotation (z-axis for 2D)
 
-        eyeMesh.position.set(position.x, position.y, 0);
+        eyeMesh.position.set(position.x, position.y, -0.1);
         eyeMesh.rotation.z = rotation; // Update the eyeMesh rotation (z-axis for 2D)
 
-        let eyeColor = new THREE.Color(0x48e870);
-        if (interactionType === "Predator") {
-            eyeColor = new THREE.Color(0xb02a3e);
-        }
-        eyeMesh.material.color = eyeColor;
+        // let eyeColor = new THREE.Color(0x48e870);
+        // if (interactionType === "Predator") {
+        //     eyeColor = new THREE.Color(0xb02a3e);
+        // }
+        // eyeMesh.material.color = eyeColor;
 
         if (mesh !== selectedCuboid?.mesh) {
             // Change the color based on the health or any other condition
