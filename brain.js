@@ -1,24 +1,27 @@
-import { R } from "./rl.js";
+import {R} from "./rl.js";
 
-// const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health", "absolute_eye_sight.x","absolute_eye_sight.y", "relative_eye_sight.x", "relative_eye_sight.y"];
+// const EYE_SENSORY_INPUTS = ["absolute_eye_sight.x", "absolute_eye_sight.y", "relative_eye_sight.x", "relative_eye_sight.y"];
+const EYE_SENSORY_INPUTS = ["relative_eye_sight.x", "relative_eye_sight.y"];
 const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health"];
 const ALL_ACTIONS = ["absolute_impulse.x", "absolute_impulse.y", "relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
 const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];
 
 class Brain {
-    constructor(parentBrain = null) {
-        this.initialize(parentBrain);
+    constructor(parent = null) {
+        this.initialize(parent);
     }
 
-    initialize(parentBrain) {
+    initialize(parent) {
         this.numNodesInHiddenLayer = Math.max(1, Math.round(Math.random() * 20 + (Math.random() * 3) - 1.5));
 
         const mutationRate = 0.005;
 
-        if (parentBrain === null || Math.random() < mutationRate) {
+        if (parent === null || Math.random() < mutationRate) {
             this.sensoryInputs = this.getRandomSubarray(ALL_SENSORY_INPUTS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1);
+            this.visionInputs = EYE_SENSORY_INPUTS;
         } else {
-            this.sensoryInputs = parentBrain.sensoryInputs.slice();
+            this.sensoryInputs = parent.brain.sensoryInputs.slice();
+            this.visionInputs = parent.brain.visionInputs.slice();
 
             if (Math.random() < mutationRate && this.sensoryInputs.length > 1) {
                 // Remove a random sensory input
@@ -32,28 +35,30 @@ class Brain {
             }
         }
 
-        if (parentBrain === null) {
+        if (parent === null) {
             this.sensoryInputs = this.getRandomSubarray(ALL_SENSORY_INPUTS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1);
+            this.visionInputs = EYE_SENSORY_INPUTS;;
             this.firstFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
             this.secondFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
             this.actionTypes = this.getRandomSubarray(ALL_ACTIONS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1)
         } else {
-            this.sensoryInputs = parentBrain.sensoryInputs;
-            this.firstFilterType = parentBrain.firstFilterType;
-            this.secondFilterType = parentBrain.secondFilterType;
-            this.actionTypes = parentBrain.actionTypes;
+            this.sensoryInputs = parent.brain.sensoryInputs;
+            this.visionInputs = parent.brain.visionInputs;
+            this.firstFilterType = parent.brain.firstFilterType;
+            this.secondFilterType = parent.brain.secondFilterType;
+            this.actionTypes = parent.brain.actionTypes;
         }
 
-        this.inputs = new R.Mat(this.numNodesInHiddenLayer, this.sensoryInputs.length);
+        this.inputs = new R.Mat(this.numNodesInHiddenLayer, this.sensoryInputs.length + this.visionInputs.length);
         this.inputBiases = new R.Mat(this.numNodesInHiddenLayer, 1);
         this.outputs = new R.Mat(this.actionTypes.length, this.numNodesInHiddenLayer);
         this.outputBiases = new R.Mat(this.actionTypes.length, 1);
 
-        if (parentBrain !== null) {
-            this.inputs.setFromWithErrors(parentBrain.inputs.w);
-            this.inputBiases.setFromWithErrors(parentBrain.inputBiases.w);
-            this.outputs.setFromWithErrors(parentBrain.outputs.w);
-            this.outputBiases.setFromWithErrors(parentBrain.outputBiases.w);
+        if (parent !== null) {
+            this.inputs.setFromWithErrors(parent.brain.inputs.w);
+            this.inputBiases.setFromWithErrors(parent.brain.inputBiases.w);
+            this.outputs.setFromWithErrors(parent.brain.outputs.w);
+            this.outputBiases.setFromWithErrors(parent.brain.outputBiases.w);
         }
     }
 
@@ -79,9 +84,9 @@ class Brain {
         }
     }
 
-    react(slist) {
-        const s = new R.Mat(slist.length, 1);
-        s.setFrom(slist);
+    react(sList, eyeList) {
+        const s = new R.Mat(sList.length + eyeList.length, 1);
+        s.setFrom(sList.concat(eyeList));
 
         const G = new R.Graph(false);
         const a1mat = G.add(G.mul(this.inputs, s), this.inputBiases);
@@ -93,6 +98,6 @@ class Brain {
     }
 }
 
-export function createBrain(parentBrain = null) {
-    return new Brain(parentBrain);
+export function createBrain(parent = null) {
+    return new Brain(parent);
 }

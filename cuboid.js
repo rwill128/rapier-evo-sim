@@ -21,11 +21,11 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     scene.add(cuboidMesh);
 
     // Create an eye collider that is twice the size of the cuboid object.
-    let eyeColliderDesc = RAPIER.ColliderDesc.cuboid(width, height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
+    let eyeColliderDesc = RAPIER.ColliderDesc.cuboid(width * 7/2, height * 7/2).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
     let eyeCollider = world.createCollider(eyeColliderDesc, rigidBody);
 
     // Create a cuboid mesh and add it to the scene
-    const eyeGeometry = new THREE.BoxGeometry(2 * width, 2 * height, 0.1);
+    const eyeGeometry = new THREE.BoxGeometry(width * 7, height * 7, 0.1);
     // Create an eye mesh material with transparency enabled
     const eyeMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
@@ -49,7 +49,7 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
         collider: collider,
         age,
         children,
-        eyeCollider: eyeCollider
+        eyeColliders: [eyeCollider]
     };
     colliderToCuboid[collider.handle] = cuboid;
     return cuboid;
@@ -77,6 +77,27 @@ export function getState(cuboid) {
     }
     return stateObservations;
 }
+
+export function getVision(cuboid) {
+    let eyeObservations = [];
+
+    for (const eyeCollider in cuboid.eyeColliders) {
+        world.intersectionsWith(eyeCollider, (otherCollider) => {
+            if (colliderToCuboid.hasOwnProperty(otherCollider.handle)) {
+                const otherCuboid = colliderToCuboid[otherCollider.handle];
+                eyeObservations.push(cuboid.rigidBody.translation().x - otherCuboid.rigidBody.translation().x);
+                eyeObservations.push(cuboid.rigidBody.translation().y - otherCuboid.rigidBody.translation().y);
+            }
+        });
+    }
+
+    while (eyeObservations.length < 2) {
+        eyeObservations.push(0)
+    }
+
+    return eyeObservations;
+}
+
 
 export function applyAction(cuboid, action) {
 
@@ -118,7 +139,8 @@ export function applyAction(cuboid, action) {
 
 export function reactToWorld(cuboid) {
     const state = getState(cuboid);
-    const action = cuboid.brain.react(state);
+    const eyeInputs =  getVision(cuboid);
+    const action = cuboid.brain.react(state, eyeInputs);
     applyAction(cuboid, action);
 }
 
@@ -131,7 +153,7 @@ export function removeCuboid(cuboid) {
     // Remove the rigid body from the physics world
     world.removeRigidBody(cuboid.rigidBody);
     world.removeCollider(cuboid.collider);
-    world.removeCollider(cuboid.eyeCollider);
+    world.removeCollider(cuboid.eyeColliders[0]);
 
     // Remove the mesh from the scene
     scene.remove(cuboid.mesh);

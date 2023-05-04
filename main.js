@@ -29,7 +29,7 @@ async function init() {
 
     const padding = 0.1;
     const worldSize = world_size / 2;
-    const numSceneObjects = 6;
+    const numSceneObjects = 2;
     const obstacleWidth = 20;
     const obstacleHeight = 20;
     sceneObjects = [];
@@ -101,16 +101,7 @@ async function init() {
             });
         }
 
-        // Process all vision for creatures
-        // for (const cuboid of cuboids) {
-        //     world.intersectionsWith(cuboid.eyeCollider, (otherCollider) => {
-        //         if (colliderToCuboid.hasOwnProperty(otherCollider.handle)) {
-        //             console.log("Saw a cuboid: " + colliderToCuboid[otherCollider.handle])
-        //         } else {
-        //             console.log("Saw a noncuboid: " + otherCollider)
-        //         }
-        //     });
-        // }
+
 
 
         for (const cuboid of cuboids) {
@@ -124,7 +115,7 @@ async function init() {
 
                 if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
                     cuboid.health -= 900
-                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, cuboid.brain);
+                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, cuboid);
                     cuboids.push(newCuboid);
                 }
             }
