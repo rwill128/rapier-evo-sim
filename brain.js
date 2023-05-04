@@ -49,10 +49,10 @@ class Brain {
             this.actionTypes = parent.brain.actionTypes;
         }
 
-        this.inputs = new R.Mat(this.numNodesInHiddenLayer, this.sensoryInputs.length + this.visionInputs.length);
-        this.inputBiases = new R.Mat(this.numNodesInHiddenLayer, 1);
-        this.outputs = new R.Mat(this.actionTypes.length, this.numNodesInHiddenLayer);
-        this.outputBiases = new R.Mat(this.actionTypes.length, 1);
+        this.inputs = new R.RandMat(this.numNodesInHiddenLayer, this.sensoryInputs.length + this.visionInputs.length, 0, 0.01);
+        this.inputBiases = new R.RandMat(this.numNodesInHiddenLayer, 1, 0, 0.01);
+        this.outputs = new R.RandMat(this.actionTypes.length, this.numNodesInHiddenLayer, 0, 0.01);
+        this.outputBiases = new R.RandMat(this.actionTypes.length, 1, 0, 0.01);
 
         if (parent !== null) {
             this.inputs.setFromWithErrors(parent.brain.inputs.w);
