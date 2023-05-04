@@ -1,7 +1,7 @@
 import {R} from "./rl.js";
 
 // const EYE_SENSORY_INPUTS = ["absolute_eye_sight.x", "absolute_eye_sight.y", "relative_eye_sight.x", "relative_eye_sight.y"];
-const EYE_SENSORY_INPUTS = ["relative_eye_sight.x", "relative_eye_sight.y"];
+const EYE_SENSORY_INPUTS = ["relative_eye_sight.x", "relative_eye_sight.y", "witnessed_creature_type"];
 const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health"];
 const ALL_ACTIONS = ["absolute_impulse.x", "absolute_impulse.y", "relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
 const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];

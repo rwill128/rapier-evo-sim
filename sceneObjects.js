@@ -19,7 +19,7 @@ export function createSceneObject(x, y, width, height) {
     scene.add(cuboidMesh);
 
     // Create a sensor collider that is twice the size of the scene object.
-    let sensorColliderDesc = RAPIER.ColliderDesc.cuboid(width, height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
+    let sensorColliderDesc = RAPIER.ColliderDesc.cuboid(2/2 * width, 2/2 * height).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
     let sensorCollider = world.createCollider(sensorColliderDesc, rigidBody);
 
     // Create a cuboid mesh and add it to the scene
@@ -28,7 +28,7 @@ export function createSceneObject(x, y, width, height) {
     const sensorMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
         transparent: true,
-        opacity: 0.1 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
+        opacity: 0.01 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
     });
     const sensorMesh = new THREE.Mesh(sensorGeometry, sensorMaterial);
     scene.add(sensorMesh);

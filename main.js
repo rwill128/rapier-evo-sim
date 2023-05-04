@@ -29,7 +29,7 @@ async function init() {
 
     const padding = 0.1;
     const worldSize = world_size / 2;
-    const numSceneObjects = 2;
+    const numSceneObjects = 3;
     const obstacleWidth = 20;
     const obstacleHeight = 20;
     sceneObjects = [];
@@ -96,7 +96,11 @@ async function init() {
         for (const sceneObject of sceneObjects) {
             world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
                 if (colliderToCuboid[otherCollider.handle] !== null) {
-                    colliderToCuboid[otherCollider.handle].health += 2;
+                    if (colliderToCuboid[otherCollider.handle] !== "Predator") {
+                        // console.log("Giving health to plant type creature")
+                        colliderToCuboid[otherCollider.handle].health += 2;
+
+                    }
                 }
             });
         }
@@ -105,6 +109,22 @@ async function init() {
 
 
         for (const cuboid of cuboids) {
+
+            //Process predator collisions
+            if (cuboid.collider.interactionType === "Predator") {
+                world.contactsWith(cuboid.collider, (otherCollider) => {
+                    if (otherCollider.parent().userData !== undefined) {
+                        const otherCuboid = otherCollider.parent().userData;
+                        if (otherCuboid.rigidBody.interactionType !== "Predator") {
+                            // console.log("Successfully processed predator collision")
+                            otherCuboid.health -= 1000;
+                            cuboid.health += 1000;
+                        }
+                    }
+                });
+
+            }
+
             reactToWorld(cuboid);
             calculateEnvironmentalEffects(cuboid);
 

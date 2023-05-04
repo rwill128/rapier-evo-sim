@@ -25,7 +25,7 @@ function initRenderer(world_size) {
 function render() {
 
     // Update the position and rotation of each cuboid object
-    for (const {rigidBody, mesh, eyeMesh, age} of cuboids) {
+    for (const {rigidBody, mesh, eyeMesh, collider} of cuboids) {
         const position = rigidBody.translation();
         const rotation = rigidBody.rotation(); // Get the rotation (in radians) from the rigid body
         mesh.position.set(position.x, position.y, 0);
@@ -40,8 +40,10 @@ function render() {
         if (mesh !== selectedCuboid?.mesh) {
             // Change the color based on the health or any other condition
             // For example, you can interpolate the color between red and brown based on the health percentage
-            const healthPercentage = age / 10000; // Assuming maximum health is 100
-            const color = new THREE.Color(0x27b049);
+            let color = new THREE.Color(0x27b049);
+            if (collider.interactionType === "Predator") {
+                color = new THREE.Color(0xb02a3e);
+            }
             mesh.material.color = color;
         }
     }

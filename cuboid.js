@@ -5,6 +5,8 @@ import {deselect, selectedCuboid} from "./inputHandler.js";
 
 let colliderToCuboid = {}
 
+const CREATURE_TYPES = ["Plant", "Predator"]
+
 export function createCuboid(x, y, width, height, health, parentAgent = null) {
     // Create a dynamic rigid-body.
     let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y);
@@ -13,6 +15,17 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     // Create a cuboid collider attached to the dynamic rigidBody.
     let colliderDesc = RAPIER.ColliderDesc.cuboid(width / 2, height / 2);
     let collider = world.createCollider(colliderDesc, rigidBody);
+
+    if (parentAgent === null) {
+        if (Math.random() < .1) {
+            collider.interactionType = "Predator";
+        } else {
+            collider.interactionType = "Plant"
+        }
+    } else {
+        collider.interactionType = parentAgent.collider.interactionType;
+    }
+
 
     // Create a cuboid mesh and add it to the scene
     const cuboidGeometry = new THREE.BoxGeometry(width, height, 0.1);
@@ -30,7 +43,7 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
     const eyeMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
         transparent: true,
-        opacity: 0.1 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
+        opacity: 0.01 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
     });
     const eyeMesh = new THREE.Mesh(eyeGeometry, eyeMaterial);
     scene.add(eyeMesh);
@@ -51,6 +64,7 @@ export function createCuboid(x, y, width, height, health, parentAgent = null) {
         children,
         eyeColliders: [eyeCollider]
     };
+    rigidBody.userData = cuboid;
     colliderToCuboid[collider.handle] = cuboid;
     return cuboid;
 }
@@ -81,18 +95,25 @@ export function getState(cuboid) {
 export function getVision(cuboid) {
     let eyeObservations = [];
 
-    for (const eyeCollider in cuboid.eyeColliders) {
+    for (const eyeCollider of cuboid.eyeColliders) {
         world.intersectionsWith(eyeCollider, (otherCollider) => {
-            if (colliderToCuboid.hasOwnProperty(otherCollider.handle)) {
-                const otherCuboid = colliderToCuboid[otherCollider.handle];
+            if (otherCollider.parent().userData !== undefined) {
+                const otherCuboid = otherCollider.parent().userData;
                 eyeObservations.push(cuboid.rigidBody.translation().x - otherCuboid.rigidBody.translation().x);
                 eyeObservations.push(cuboid.rigidBody.translation().y - otherCuboid.rigidBody.translation().y);
+                eyeObservations.push(CREATURE_TYPES.indexOf(otherCuboid.rigidBody.interactionType));
+                return false;
             }
+            return true;
         });
     }
 
-    while (eyeObservations.length < 2) {
+    while (eyeObservations.length < 3) {
         eyeObservations.push(0)
+    }
+
+    if (eyeObservations.length > 3) {
+        eyeObservations = [eyeObservations[0], eyeObservations[1], eyeObservations[2]]
     }
 
     return eyeObservations;
