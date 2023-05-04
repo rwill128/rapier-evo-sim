@@ -36,11 +36,11 @@ class Brain {
         }
 
         if (parent === null) {
-            this.sensoryInputs = this.getRandomSubarray(ALL_SENSORY_INPUTS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1);
+            this.sensoryInputs = ALL_SENSORY_INPUTS;
             this.visionInputs = EYE_SENSORY_INPUTS;;
             this.firstFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
             this.secondFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
-            this.actionTypes = this.getRandomSubarray(ALL_ACTIONS, Math.floor(Math.random() * (ALL_SENSORY_INPUTS.length - 1)) + 1)
+            this.actionTypes = ALL_ACTIONS;
         } else {
             this.sensoryInputs = parent.brain.sensoryInputs;
             this.visionInputs = parent.brain.visionInputs;

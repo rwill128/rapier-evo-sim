@@ -7,7 +7,6 @@ import {
     isSpaceEmpty
 } from "./utils.js";
 import {
-    colliderToCuboid,
     createCuboid, reactToWorld,
     removeCuboid,
 } from "./cuboid.js";
@@ -19,17 +18,16 @@ let cuboids;
 let sceneObjects;
 
 async function init() {
-    const world_size = 200
+    const world_size = 300
     await initPhysicsEngine()
     initRenderer(world_size);
 
     document.addEventListener('click', onMouseClick, false);
 
 
-
     const padding = 0.1;
     const worldSize = world_size / 2;
-    const numSceneObjects = 3;
+    const numSceneObjects = 2;
     const obstacleWidth = 20;
     const obstacleHeight = 20;
     sceneObjects = [];
@@ -95,27 +93,22 @@ async function init() {
         // Process all sceneObject effects
         for (const sceneObject of sceneObjects) {
             world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
-                if (colliderToCuboid[otherCollider.handle] !== null) {
-                    if (colliderToCuboid[otherCollider.handle] !== "Predator") {
-                        // console.log("Giving health to plant type creature")
-                        colliderToCuboid[otherCollider.handle].health += 2;
-
-                    }
+                if (otherCollider.parent().userData.interactionType === "Plant") {
+                    const affectedCuboid = otherCollider.parent().userData;
+                    affectedCuboid.health += 2;
                 }
             });
         }
 
 
-
-
         for (const cuboid of cuboids) {
 
             //Process predator collisions
-            if (cuboid.collider.interactionType === "Predator") {
+            if (cuboid.collider.parent().userData.interactionType === "Predator") {
                 world.contactsWith(cuboid.collider, (otherCollider) => {
                     if (otherCollider.parent().userData !== undefined) {
                         const otherCuboid = otherCollider.parent().userData;
-                        if (otherCuboid.rigidBody.interactionType !== "Predator") {
+                        if (otherCuboid.interactionType !== "Predator") {
                             // console.log("Successfully processed predator collision")
                             otherCuboid.health -= 1000;
                             cuboid.health += 1000;
@@ -148,6 +141,17 @@ async function init() {
         }
 
         cuboids = cuboids.filter(cuboid => cuboid !== null);
+
+        // Occasionally sprinkle in some genetic diversity
+        if (Math.random() < .01) {
+            const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
+
+            if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
+                const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, 100);
+                cuboids.push(newCuboid);
+            }
+        }
+
 
         world.step();
         updateCamera();

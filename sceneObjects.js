@@ -28,7 +28,7 @@ export function createSceneObject(x, y, width, height) {
     const sensorMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
         transparent: true,
-        opacity: 0.01 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
+        opacity: 0.05 // Adjust the opacity value between 0 (completely transparent) and 1 (completely opaque)
     });
     const sensorMesh = new THREE.Mesh(sensorGeometry, sensorMaterial);
     scene.add(sensorMesh);
@@ -44,5 +44,5 @@ export function createSceneObject(x, y, width, height) {
 
 export function calculateEnvironmentalEffects(cuboid) {
     cuboid.age++;
-    cuboid.health -= 1;
+    cuboid.health -= .1;
 }
