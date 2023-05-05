@@ -1,5 +1,5 @@
-import {RAPIER, world} from "./physicsEngine.js";
-import {scene, THREE} from "./renderer.js";
+import {RAPIER, world} from "../physicsEngine.js";
+import {scene, THREE} from "../renderer.js";
 
 export function createSceneObject(x, y, width, height) {
     // Create a dynamic rigid-body.
@@ -33,13 +33,15 @@ export function createSceneObject(x, y, width, height) {
     const sensorMesh = new THREE.Mesh(sensorGeometry, sensorMaterial);
     scene.add(sensorMesh);
 
-    return {
+    let sceneObject = {
         rigidBody: rigidBody,
         collider: collider,
         mesh: cuboidMesh,
         sensorMesh: sensorMesh,
-        sensorCollider: sensorCollider
+        sensorCollider: sensorCollider,
+        interactionType: "SceneObjects.Healer"
     };
+    return sceneObject;
 }
 
 export function calculateEnvironmentalEffects(cuboid) {
@@ -47,6 +49,6 @@ export function calculateEnvironmentalEffects(cuboid) {
     if (cuboid.interactionType === "Plant") {
         cuboid.health -= 1;
     } else {
-        cuboid.health -= .1
+        cuboid.health -= .1;
     }
 }

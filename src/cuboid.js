@@ -2,85 +2,14 @@ import {scene, THREE} from "./renderer.js";
 import {RAPIER, world} from "./physicsEngine.js";
 import {createBrain} from "./brain.js";
 import {deselect, selectedCuboid} from "./inputHandler.js";
+import {Cuboid} from "./cuboids/Cuboid.js";
 
-const CREATURE_TYPES = ["Plant", "Predator"]
-const customFragmentShader = `
-    varying vec3 vColor;
-    void main() {
-        gl_FragColor = vec4(0.0, 0.0, 1.0, sqrt(vColor.r*vColor.r + vColor.g*vColor.g) *.01);
-    }
-`;
-const customVertexShader = `
-    varying vec3 vColor;
-    void main() {
-        vColor = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-`;
+const CREATURE_TYPES = ["Plant", "Predator", "SceneObjects.Healer"]
+
 
 
 export function createCuboid(x, y, width, height, health, parentAgent = null) {
-    // Create a dynamic rigid-body.
-    let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y);
-    let rigidBody = world.createRigidBody(rigidBodyDesc);
-
-    // Create a cuboid collider attached to the dynamic rigidBody.
-    let colliderDesc = RAPIER.ColliderDesc.cuboid(width / 2, height / 2);
-    let collider = world.createCollider(colliderDesc, rigidBody);
-
-
-    // Create a cuboid mesh and add it to the scene
-    const cuboidGeometry = new THREE.BoxGeometry(width, height, 0.1);
-    const cuboidMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
-    const cuboidMesh = new THREE.Mesh(cuboidGeometry, cuboidMaterial);
-    scene.add(cuboidMesh);
-
-    const eyeRadius = Math.max(width, height) * 7 / 2;
-    // Create an eye collider that is twice the size of the cuboid object.
-    let eyeColliderDesc = RAPIER.ColliderDesc.ball(eyeRadius).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
-    let eyeCollider = world.createCollider(eyeColliderDesc, rigidBody);
-
-    // Create a cuboid mesh and add it to the scene
-    const eyeGeometry = new THREE.CircleGeometry(eyeRadius, 32);
-    // Create an eye mesh material with transparency enabled
-    const eyeShaderMaterial = new THREE.ShaderMaterial({
-        vertexShader: customVertexShader,
-        fragmentShader: customFragmentShader,
-        transparent: true, // Enable transparency to allow blending
-        blending: THREE.NormalBlending, // Set the blending mode to additive
-    });
-
-    const eyeMesh = new THREE.Mesh(eyeGeometry, eyeShaderMaterial);
-    scene.add(eyeMesh);
-
-    const brain = createBrain(parentAgent);
-
-    let age = 1;
-    let children = 0;
-
-    let cuboid = {
-        rigidBody: rigidBody,
-        mesh: cuboidMesh,
-        eyeMesh: eyeMesh,
-        health,
-        brain,
-        collider: collider,
-        age,
-        children,
-        eyeColliders: [eyeCollider]
-    };
-    if (parentAgent === null) {
-        if (Math.random() < .3) {
-            cuboid.interactionType = "Predator";
-        } else {
-            cuboid.interactionType = "Plant"
-        }
-    } else {
-        cuboid.interactionType = parentAgent.interactionType;
-    }
-
-    rigidBody.userData = cuboid;
-    return cuboid;
+    return new Cuboid(x, y, width, height, health, parentAgent);
 }
 
 export function getState(cuboid) {
@@ -117,6 +46,10 @@ export function getVision(cuboid) {
                 eyeObservations.push(otherCuboid.rigidBody.translation().y - cuboid.rigidBody.translation().y);
                 eyeObservations.push(CREATURE_TYPES.indexOf(otherCuboid.interactionType));
                 return false;
+            } else {
+                eyeObservations.push(otherCollider.parent().translation().x - otherCollider.parent().translation().x);
+                eyeObservations.push(otherCollider.parent().translation().y - otherCollider.parent().translation().y);
+                eyeObservations.push(0);
             }
             return true;
         });
@@ -192,12 +125,12 @@ export function removeCuboid(cuboid) {
     world.removeCollider(cuboid.eyeColliders[0]);
 
     // Remove the mesh from the scene
-    scene.remove(cuboid.mesh);
+    scene.remove(cuboid.cuboidBodyMesh);
     scene.remove(cuboid.eyeMesh);
 
     // Dispose of the geometry and material resources
-    cuboid.mesh.geometry.dispose();
-    cuboid.mesh.material.dispose();
+    cuboid.cuboidBodyMesh.geometry.dispose();
+    cuboid.cuboidBodyMesh.material.dispose();
     cuboid.eyeMesh.geometry.dispose();
     cuboid.eyeMesh.material.dispose();
 }

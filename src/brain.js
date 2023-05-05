@@ -3,7 +3,9 @@ import {R} from "./rl.js";
 // const EYE_SENSORY_INPUTS = ["absolute_eye_sight.x", "absolute_eye_sight.y", "relative_eye_sight.x", "relative_eye_sight.y"];
 const EYE_SENSORY_INPUTS = ["relative_eye_sight.x", "relative_eye_sight.y", "witnessed_creature_type"];
 const ALL_SENSORY_INPUTS = ["position.x", "position.y", "velocity.x", "velocity.y", "health"];
-const ALL_ACTIONS = ["absolute_impulse.x", "absolute_impulse.y", "relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
+// const ALL_SENSORY_INPUTS = ["health"];
+// const ALL_ACTIONS = ["absolute_impulse.x", "absolute_impulse.y", "relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
+const ALL_ACTIONS = ["relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
 const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];
 
 class Brain {
@@ -72,17 +74,16 @@ class Brain {
     }
 
     filter(G, matrix, filterType) {
-        return G.tanh(matrix);
-        // switch (filterType) {
-        //     case "tanh":
-        //         return G.tanh(matrix);
-        //     case "sigmoid":
-        //         return G.sigmoid(matrix);
-        //     case "relu":
-        //         return G.relu(matrix);
-        //     default:
-        //         throw new Error("Invalid filter type");
-        // }
+        switch (filterType) {
+            case "tanh":
+                return G.tanh(matrix);
+            case "sigmoid":
+                return G.sigmoid(matrix);
+            case "relu":
+                return G.relu(matrix);
+            default:
+                throw new Error("Invalid filter type");
+        }
     }
 
     react(sList, eyeList) {

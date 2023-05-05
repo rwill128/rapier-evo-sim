@@ -1,6 +1,6 @@
 import {createSceneObject} from "./sceneObjects.js";
-import {generateRandomPosition, isSpaceEmpty} from "./utils.js";
-import {sceneObjects, world} from "./main.js";
+import {generateRandomPosition, isSpaceEmpty} from "../utils.js";
+import {sceneObjects, world} from "../main.js";
 
 class SceneObjectsManager {
     constructor(worldSize) {

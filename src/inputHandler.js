@@ -68,27 +68,27 @@ export function onMouseClick(event) {
     raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
     // Find the intersections between the ray and the cuboids
-    const intersects = raycaster.intersectObjects(cuboids.map(cuboid => cuboid.mesh));
+    const intersects = raycaster.intersectObjects(cuboids.map(cuboid => cuboid.cuboidBodyMesh));
 
     // If there's an intersection, select the first intersected cuboid
     if (intersects.length > 0) {
         const intersectedMesh = intersects[0].object;
 
         // Find the corresponding cuboid object
-        const intersectedCuboid = cuboids.find(cuboid => cuboid.mesh === intersectedMesh);
+        const intersectedCuboid = cuboids.find(cuboid => cuboid.cuboidBodyMesh === intersectedMesh);
 
         // Deselect the previously selected cuboid, if any
         if (selectedCuboid) {
-            selectedCuboid.mesh.material.color.set(0xff0000);
+            selectedCuboid.cuboidBodyMesh.material.color.set(0xff0000);
         }
 
         // Select the intersected cuboid
         selectedCuboid = intersectedCuboid;
-        selectedCuboid.mesh.material.color.set(0x00ff00);
+        selectedCuboid.cuboidBodyMesh.material.color.set(0x00ff00);
     } else {
         // Deselect the previously selected cuboid, if any
         if (selectedCuboid) {
-            selectedCuboid.mesh.material.color.set(0xff0000);
+            selectedCuboid.cuboidBodyMesh.material.color.set(0xff0000);
             selectedCuboid = null;
         }
     }
