@@ -10,7 +10,7 @@ class SceneObjectsManager {
     initSceneObjects(worldSize) {
         const padding = 0.1;
         const halfWorldSize = worldSize / 2;
-        const numSceneObjects = 5;
+        const numSceneObjects = 1;
         const obstacleWidth = 20;
         const obstacleHeight = 20;
 
@@ -39,12 +39,16 @@ class SceneObjectsManager {
 
     update() {
         for (const sceneObject of sceneObjects) {
+            let affectedCuboids = []
             world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
-                if (otherCollider.parent().userData.interactionType === "Plant") {
+                if (otherCollider.parent().userData !== undefined && otherCollider.parent().userData.interactionType === "Plant") {
                     const affectedCuboid = otherCollider.parent().userData;
-                    affectedCuboid.health += 2;
+                    affectedCuboids.push(affectedCuboid);
                 }
             });
+            for (const affectedCuboid of affectedCuboids) {
+                affectedCuboid.health += 2;
+            }
         }
     }
 }

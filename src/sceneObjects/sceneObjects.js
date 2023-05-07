@@ -43,12 +43,3 @@ export function createSceneObject(x, y, width, height) {
     };
     return sceneObject;
 }
-
-export function calculateEnvironmentalEffects(cuboid) {
-    cuboid.age++;
-    if (cuboid.interactionType === "Plant") {
-        cuboid.health -= 1;
-    } else {
-        cuboid.health -= .1;
-    }
-}

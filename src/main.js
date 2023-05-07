@@ -7,10 +7,9 @@ import {
     isSpaceEmpty
 } from "./utils.js";
 import {
-    createCuboid, reactToWorld,
+    createCuboid,
     removeCuboid,
 } from "./cuboid.js";
-import {calculateEnvironmentalEffects} from "./sceneObjects/sceneObjects.js";
 import {updateInfoWindow} from "./infoWindow.js";
 import {updateWorldInfoWindow} from "./worldInfoWindow.js";
 import {SceneObjectsManager} from "./sceneObjects/sceneObjectsManager.js";
@@ -62,9 +61,9 @@ async function init() {
     const animate = () => {
         requestAnimationFrame(animate);
 
+        world.step();
 
         sceneObjectsManager.update();
-
 
         for (const cuboid of cuboids) {
 
@@ -75,25 +74,25 @@ async function init() {
                         const otherCuboid = otherCollider.parent().userData;
                         if (otherCuboid.interactionType !== "Predator") {
                             // console.log("Successfully processed predator collision")
-                            otherCuboid.health -= 1000;
-                            cuboid.health += 1000;
+                            otherCuboid.health -= 100;
+                            cuboid.health += 50;
                         }
                     }
                 });
 
             }
 
-            reactToWorld(cuboid);
-            calculateEnvironmentalEffects(cuboid);
+            cuboid.reactToWorld();
+            cuboid.calculateEnvironmentalEffects();
 
             // Check if the health is less than or equal to 0 and replace the cuboid
             if (cuboid.health > 1000) {
                 // Generate a new random position for the new cuboid
                 const newPosition = generateRandomPositionWithinDistance(cuboid.rigidBody.translation(), 3);
 
-                if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding) && cuboids.length < 500) {
+                if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
                     cuboid.health -= 900
-                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, health, cuboid);
+                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, 100, cuboid);
                     cuboids.push(newCuboid);
                 }
             }
@@ -108,17 +107,19 @@ async function init() {
         cuboids = cuboids.filter(cuboid => cuboid !== null);
 
         // Occasionally sprinkle in some genetic diversity
-        // if (Math.random() < .05) {
-        //     const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
-        //
-        //     if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
-        //         const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, 100);
-        //         cuboids.push(newCuboid);
-        //     }
-        // }
+        if (Math.random() < .05) {
+            const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
+
+            if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
+                const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, 100);
+                cuboids.push(newCuboid);
+            }
+        }
 
 
-        world.step();
+
+
+
         updateCamera();
         render();
         updateInfoWindow();

@@ -1,6 +1,7 @@
 import {RAPIER, world} from "../physicsEngine.js";
 import {scene, THREE} from "../renderer.js";
 import {createBrain} from "../brain.js";
+import {applyAction, getState, getVision} from "../cuboid.js";
 
 const customFragmentShader = `
     varying vec3 vColor;
@@ -79,6 +80,23 @@ export class Cuboid {
     set health(newHealth) {
         this._health = newHealth;
         // Set a breakpoint here to see what's affecting the health
+    }
+
+    reactToWorld() {
+        const state = getState(this);
+        const eyeInputs =  getVision(this);
+        const action = this.brain.react(state, eyeInputs);
+        this.brain.lastAction = action;
+        applyAction(this, action);
+    }
+
+    calculateEnvironmentalEffects() {
+        this.age++;
+        if (this.interactionType === "Plant") {
+            this.health -= 1;
+        } else {
+            this.health -= .1;
+        }
     }
 
 }
