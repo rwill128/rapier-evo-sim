@@ -10,6 +10,7 @@ import {updateInfoWindow} from "./infoWindow.js";
 import {updateWorldInfoWindow} from "./worldInfoWindow.js";
 import {SceneObjectsManager} from "./sceneObjects/sceneObjectsManager.js";
 import {Cuboid} from "./cuboids/Cuboid.js";
+import {loadTop50HealthiestCreatures, saveTop50HealthiestCreatures} from "./storageUtils.js";
 
 let cuboids;
 let sceneObjects = []
@@ -28,9 +29,9 @@ async function init() {
     const health = 100;
     const padding = .1;
     const numCuboids = 150;
-    cuboids = [];
+    cuboids = loadTop50HealthiestCreatures(world_size/2, width, height);
 
-    for (let i = 0; i < numCuboids; i++) {
+    while (cuboids.length < numCuboids) {
         let attempts = 0;
         let maxAttempts = 10;
         let createdCuboid = false;
@@ -51,6 +52,14 @@ async function init() {
             console.log("Failed to create a cuboid after", maxAttempts, "attempts.");
         }
     }
+
+    document.getElementById('save-top-50').addEventListener('click', () => {
+        // Assuming you have the creatures array available in the scope
+        saveTop50HealthiestCreatures(cuboids);
+    });
+
+
+    cuboids = cuboids.concat(loadTop50HealthiestCreatures());
 
 
     initInputHandler();

@@ -19,9 +19,21 @@ const customVertexShader = `
 `;
 
 export class Cuboid {
-    constructor(x, y, width, height, health, parentAgent = null) {
+    constructor(x, y, width, height, health, parentAgent = null, state = null) {
 
-        this.health = health;
+        if (state) {
+            this.health = state.health;
+            this.interactionType = state.interactionType;
+            this.age = state.age;
+            this.children = state.children;
+            // You may need to modify the brain deserialization depending on its structure
+            this.brain = new Brain(parentAgent, JSON.parse(state.brain));
+        } else {
+            this.health = health;
+            this.age = 1;
+            this.children = 0;
+            this.brain = new Brain(parentAgent);
+        }
 
         // Create a dynamic rigid-body.
         let rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y);
@@ -55,10 +67,7 @@ export class Cuboid {
         this.eyeMesh = new THREE.Mesh(eyeGeometry, eyeShaderMaterial);
         scene.add(this.eyeMesh);
 
-        this.brain = new Brain(parentAgent);
 
-        this.age = 1;
-        this.children = 0;
         this.eyeColliders = [this.eyeCollider]
 
         if (parentAgent === null) {

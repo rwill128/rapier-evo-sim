@@ -9,8 +9,12 @@ const ALL_ACTIONS = ["relative_impulse.x", "relative_impulse.y", "rotational_imp
 const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];
 
 export class Brain {
-    constructor(parent = null) {
-        this.initialize(parent);
+    constructor(parent = null, state = null) {
+        if (state) {
+            this.deserialize(state);
+        } else {
+            this.initialize(parent);
+        }
     }
 
     initialize(parent) {
@@ -113,5 +117,22 @@ export class Brain {
             outputs: this.outputs.toJSON(),
             outputBiases: this.outputBiases.toJSON(),
         });
+    }
+    deserialize(state) {
+        this.numNodesInHiddenLayer = state.numNodesInHiddenLayer;
+        this.sensoryInputs = state.sensoryInputs;
+        this.visionInputs = state.visionInputs;
+        this.firstFilterType = state.firstFilterType;
+        this.secondFilterType = state.secondFilterType;
+        this.actionTypes = state.actionTypes;
+        // Assuming the R.RandMat class has a fromJSON method
+        this.inputs = new R.Mat(1, 1);
+        this.inputs.fromJSON(state.inputs);
+        this.inputBiases = new R.Mat(1, 1);
+        this.inputBiases.fromJSON(state.inputBiases);
+        this.outputs = new R.Mat(1, 1);
+        this.outputs.fromJSON(state.outputs);
+        this.outputBiases = new R.Mat(1, 1);
+        this.outputBiases.fromJSON(state.outputBiases);
     }
 }
