@@ -1,8 +1,9 @@
 import {RAPIER, world} from "../physicsEngine.js";
 import {scene, THREE} from "../renderer.js";
 import {Brain} from "../brain.js";
-import {getState, getVision} from "../cuboid.js";
 import {deselect, selectedCuboid} from "../inputHandler.js";
+
+const CREATURE_TYPES = ["Plant", "Predator", "SceneObjects.Healer"]
 
 const customFragmentShader = `
     varying vec3 vColor;
@@ -93,8 +94,8 @@ export class Cuboid {
     }
 
     reactToWorld() {
-        const state = getState(this);
-        const eyeInputs =  getVision(this);
+        const state = this.observeWorld();
+        const eyeInputs =  this.getVision();
         const action = this.brain.react(state, eyeInputs);
         this.brain.lastAction = action;
         this.takeAction(action);
@@ -181,6 +182,60 @@ export class Cuboid {
             // You may need to modify the brain serialization depending on its structure
             brain: this.brain.serialize()
         });
+    }
+
+    observeWorld() {
+        let stateObservations = [];
+
+        for (let i = 0; i < this.brain.sensoryInputs.length; i++) {
+            const nextInput = this.brain.sensoryInputs[i];
+
+            if (nextInput === "position.x") {
+                stateObservations.push(this.rigidBody.translation().x);
+            } else if (nextInput === "position.y") {
+                stateObservations.push(this.rigidBody.translation().y);
+            } else if (nextInput === "velocity.x") {
+                stateObservations.push(this.rigidBody.linvel().x);
+            } else if (nextInput === "velocity.y") {
+                stateObservations.push(this.rigidBody.linvel().y);
+            } else if (nextInput === "health") {
+                stateObservations.push(this.health);
+            } else if (nextInput === "age") {
+                stateObservations.push(this.age);
+            }
+        }
+        return stateObservations;
+    }
+
+    getVision() {
+        let eyeObservations = [];
+
+        for (const eyeCollider of this.eyeColliders) {
+            world.intersectionsWith(eyeCollider, (otherCollider) => {
+                if (otherCollider.parent().userData !== undefined) {
+                    const otherCuboid = otherCollider.parent().userData;
+                    eyeObservations.push(otherCuboid.rigidBody.translation().x - this.rigidBody.translation().x);
+                    eyeObservations.push(otherCuboid.rigidBody.translation().y - this.rigidBody.translation().y);
+                    eyeObservations.push(CREATURE_TYPES.indexOf(otherCuboid.interactionType));
+                    return false;
+                } else {
+                    eyeObservations.push(otherCollider.parent().translation().x - otherCollider.parent().translation().x);
+                    eyeObservations.push(otherCollider.parent().translation().y - otherCollider.parent().translation().y);
+                    eyeObservations.push(0);
+                }
+                return true;
+            });
+        }
+
+        while (eyeObservations.length < 3) {
+            eyeObservations.push(0)
+        }
+
+        if (eyeObservations.length > 3) {
+            eyeObservations = [eyeObservations[0], eyeObservations[1], eyeObservations[2]]
+        }
+
+        return eyeObservations;
     }
 
 }
