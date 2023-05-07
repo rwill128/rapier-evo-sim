@@ -100,7 +100,7 @@ export class Cuboid {
         }
     }
 
-    dieGracefully(this) {
+    dieGracefully() {
         if (selectedCuboid === this) {
             deselect();
         }
