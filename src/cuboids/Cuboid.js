@@ -1,7 +1,8 @@
 import {RAPIER, world} from "../physicsEngine.js";
 import {scene, THREE} from "../renderer.js";
 import {createBrain} from "../brain.js";
-import {applyAction, getState, getVision} from "../cuboid.js";
+import {getState, getVision} from "../cuboid.js";
+import {deselect, selectedCuboid} from "../inputHandler.js";
 
 const customFragmentShader = `
     varying vec3 vColor;
@@ -87,7 +88,7 @@ export class Cuboid {
         const eyeInputs =  getVision(this);
         const action = this.brain.react(state, eyeInputs);
         this.brain.lastAction = action;
-        applyAction(this, action);
+        this.takeAction(action);
     }
 
     calculateEnvironmentalEffects() {
@@ -99,8 +100,63 @@ export class Cuboid {
         }
     }
 
-}
+    dieGracefully(this) {
+        if (selectedCuboid === this) {
+            deselect();
+        }
 
-export function createCuboid(x, y, width, height, health, parentAgent = null) {
-    return new Cuboid(x, y, width, height, health, parentAgent);
+        // Remove the rigid body from the physics world
+        world.removeRigidBody(this.rigidBody);
+        world.removeCollider(this.collider);
+        world.removeCollider(this.eyeColliders[0]);
+
+        // Remove the mesh from the scene
+        scene.remove(this.cuboidBodyMesh);
+        scene.remove(this.eyeMesh);
+
+        // Dispose of the geometry and material resources
+        this.cuboidBodyMesh.geometry.dispose();
+        this.cuboidBodyMesh.material.dispose();
+        this.eyeMesh.geometry.dispose();
+        this.eyeMesh.material.dispose();
+    }
+
+    takeAction(action) {
+
+        const actionTypes = this.brain.actionTypes;
+        const orientation = this.rigidBody.rotation();
+
+        const linearImpulseStrength = 0.5;
+        const rotationalImpulseStrength = 0.05;
+
+        for (let i = 0; i < actionTypes.length; i++) {
+            const actionType = actionTypes[i];
+            const impulseValue = action[i];
+
+            switch (actionType) {
+                case "absolute_impulse.x":
+                    this.rigidBody.applyImpulse({x: impulseValue * linearImpulseStrength, y: 0}, true);
+                    break;
+                case "absolute_impulse.y":
+                    this.rigidBody.applyImpulse({x: 0, y: impulseValue * linearImpulseStrength}, true);
+                    break;
+                case "relative_impulse.x":
+                    const impulseX = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
+                    const impulseY = impulseValue * (Math.sin(orientation) * linearImpulseStrength);
+                    this.rigidBody.applyImpulse({x: impulseX, y: impulseY}, true);
+                    break;
+                case "relative_impulse.y":
+                    const impulseXNeg = -impulseValue * (Math.sin(orientation) * linearImpulseStrength);
+                    const impulseYPos = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
+                    this.rigidBody.applyImpulse({x: impulseXNeg, y: impulseYPos}, true);
+                    break;
+                case "rotational_impulse":
+                    this.rigidBody.applyTorqueImpulse(impulseValue * rotationalImpulseStrength);
+                    break;
+                default:
+                    throw new Error(`Invalid action type: ${actionType}`);
+            }
+        }
+    }
+
 }

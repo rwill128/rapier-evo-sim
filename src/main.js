@@ -8,7 +8,6 @@ import {
 } from "./utils.js";
 import {
     createCuboid,
-    removeCuboid,
 } from "./cuboid.js";
 import {updateInfoWindow} from "./infoWindow.js";
 import {updateWorldInfoWindow} from "./worldInfoWindow.js";
@@ -100,7 +99,7 @@ async function init() {
             if (cuboid.health < 0) {
                 const index = cuboids.indexOf(cuboid);
                 cuboids[index] = null;
-                removeCuboid(cuboid);
+                cuboid.dieGracefully();
             }
         }
 
