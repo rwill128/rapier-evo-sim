@@ -1,6 +1,6 @@
 import {RAPIER, world} from "../physicsEngine.js";
 import {scene, THREE} from "../renderer.js";
-import {createBrain} from "../brain.js";
+import {Brain} from "../brain.js";
 import {getState, getVision} from "../cuboid.js";
 import {deselect, selectedCuboid} from "../inputHandler.js";
 
@@ -55,7 +55,7 @@ export class Cuboid {
         this.eyeMesh = new THREE.Mesh(eyeGeometry, eyeShaderMaterial);
         scene.add(this.eyeMesh);
 
-        this.brain = createBrain(parentAgent);
+        this.brain = new Brain(parentAgent);
 
         this.age = 1;
         this.children = 0;
@@ -157,6 +157,21 @@ export class Cuboid {
                     throw new Error(`Invalid action type: ${actionType}`);
             }
         }
+    }
+
+    serialize() {
+        return JSON.stringify({
+            x: this.rigidBody.translation.x,
+            y: this.rigidBody.translation.y,
+            width: this.cuboidBodyMesh.scale.x,
+            height: this.cuboidBodyMesh.scale.y,
+            health: this.health,
+            interactionType: this.interactionType,
+            age: this.age,
+            children: this.children,
+            // You may need to modify the brain serialization depending on its structure
+            brain: this.brain.serialize()
+        });
     }
 
 }

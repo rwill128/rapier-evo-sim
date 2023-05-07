@@ -8,7 +8,7 @@ const ALL_SENSORY_INPUTS = ["health"];
 const ALL_ACTIONS = ["relative_impulse.x", "relative_impulse.y", "rotational_impulse"];
 const ALL_FILTER_LAYERS = ["tanh", "relu", "sigmoid"];
 
-class Brain {
+export class Brain {
     constructor(parent = null) {
         this.initialize(parent);
     }
@@ -39,7 +39,8 @@ class Brain {
 
         if (parent === null) {
             this.sensoryInputs = ALL_SENSORY_INPUTS;
-            this.visionInputs = EYE_SENSORY_INPUTS;;
+            this.visionInputs = EYE_SENSORY_INPUTS;
+            ;
             this.firstFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
             this.secondFilterType = ALL_FILTER_LAYERS[Math.floor(Math.random() * (ALL_FILTER_LAYERS.length))];
             this.actionTypes = ALL_ACTIONS;
@@ -98,8 +99,19 @@ class Brain {
 
         return result.w;
     }
-}
 
-export function createBrain(parent = null) {
-    return new Brain(parent);
+    serialize() {
+        return JSON.stringify({
+            numNodesInHiddenLayer: this.numNodesInHiddenLayer,
+            sensoryInputs: this.sensoryInputs,
+            visionInputs: this.visionInputs,
+            firstFilterType: this.firstFilterType,
+            secondFilterType: this.secondFilterType,
+            actionTypes: this.actionTypes,
+            inputs: this.inputs.toJSON(),
+            inputBiases: this.inputBiases.toJSON(),
+            outputs: this.outputs.toJSON(),
+            outputBiases: this.outputBiases.toJSON(),
+        });
+    }
 }

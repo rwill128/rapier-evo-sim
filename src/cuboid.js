@@ -1,16 +1,6 @@
-import {scene, THREE} from "./renderer.js";
-import {RAPIER, world} from "./physicsEngine.js";
-import {createBrain} from "./brain.js";
-import {deselect, selectedCuboid} from "./inputHandler.js";
-import {Cuboid} from "./cuboids/Cuboid.js";
+import {world} from "./physicsEngine.js";
 
 const CREATURE_TYPES = ["Plant", "Predator", "SceneObjects.Healer"]
-
-
-
-export function createCuboid(x, y, width, height, health, parentAgent = null) {
-    return new Cuboid(x, y, width, height, health, parentAgent);
-}
 
 export function getState(cuboid) {
     let stateObservations = [];

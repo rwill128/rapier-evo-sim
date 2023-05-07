@@ -6,12 +6,10 @@ import {
     generateRandomPositionWithinDistance,
     isSpaceEmpty
 } from "./utils.js";
-import {
-    createCuboid,
-} from "./cuboid.js";
 import {updateInfoWindow} from "./infoWindow.js";
 import {updateWorldInfoWindow} from "./worldInfoWindow.js";
 import {SceneObjectsManager} from "./sceneObjects/sceneObjectsManager.js";
+import {Cuboid} from "./cuboids/Cuboid.js";
 
 let cuboids;
 let sceneObjects = []
@@ -41,7 +39,7 @@ async function init() {
             const pos = generateRandomPosition(world_size/2, width, height);
 
             if (isSpaceEmpty(pos.x, pos.y, width, height, padding)) {
-                const cuboid = createCuboid(pos.x, pos.y, width, height, health);
+                const cuboid = new Cuboid(pos.x, pos.y, width, height, health);
                 cuboids.push(cuboid);
                 createdCuboid = true;
             }
@@ -91,7 +89,7 @@ async function init() {
 
                 if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
                     cuboid.health -= 900
-                    const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, 100, cuboid);
+                    const newCuboid = new Cuboid(newPosition.x, newPosition.y, width, height, 100, cuboid);
                     cuboids.push(newCuboid);
                 }
             }
@@ -110,7 +108,7 @@ async function init() {
             const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
 
             if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
-                const newCuboid = createCuboid(newPosition.x, newPosition.y, width, height, 100);
+                const newCuboid = new Cuboid(newPosition.x, newPosition.y, width, height, 100);
                 cuboids.push(newCuboid);
             }
         }
