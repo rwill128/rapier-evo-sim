@@ -10,14 +10,14 @@ export function updateInfoWindow() {
         const children = selectedCuboid.children;
         const brain = selectedCuboid.brain;
 
-        const actorWeights1 = brain.inputs.toJSON();
-        const actorBiases1 = brain.inputBiases.toJSON();
+        // const actorWeights1 = brain.inputs.toJSON();
+        // const actorBiases1 = brain.inputBiases.toJSON();
+        //
+        // const actorWeights2 = brain.outputs.toJSON();
+        // const actorBiases2 = brain.outputBiases.toJSON();
 
-        const actorWeights2 = brain.outputs.toJSON();
-        const actorBiases2 = brain.outputBiases.toJSON();
-
-        const actorWeights1Table = weightsToTable(actorWeights1, actorBiases1);
-        const actorWeights2Table = weightsToTable(actorWeights2, actorBiases2);
+        // const actorWeights1Table = weightsToTable(actorWeights1, actorBiases1);
+        // const actorWeights2Table = weightsToTable(actorWeights2, actorBiases2);
 
         infoWindow.innerHTML = `
       <h3>Selected Cuboid</h3>
@@ -31,11 +31,6 @@ export function updateInfoWindow() {
       <p>Second filter: ${brain.secondFilterType}</p>
       <p>Action types: ${brain.actionTypes}</p>
       <p>Last Actions: ${brain.lastAction}</p>
-      <h3>Brains Weights</h3>
-        <h4>Inputs</h4>
-        ${actorWeights1Table}
-        <h4>Outputs</h4>
-        ${actorWeights2Table}
     `;
     } else {
         infoWindow.innerHTML = `<p>No cuboid selected.</p>`;

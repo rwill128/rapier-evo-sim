@@ -1,6 +1,6 @@
 import {RAPIER, world} from "../physicsEngine.js";
 import {scene, THREE} from "../renderer.js";
-import {Brain} from "../brain.js";
+import {VectorBrain} from "./vectorBrain.js";
 import {deselect, selectedCuboid} from "../inputHandler.js";
 
 const CREATURE_TYPES = ["Plant", "Predator", "SceneObjects.Healer"]
@@ -19,6 +19,9 @@ const customVertexShader = `
     }
 `;
 
+const ROTATIONAL_IMPULSE_STRENGTH = 0.05;
+const LINEAR_IMPULSE_STRENGTH = 0.5;
+
 export class Cuboid {
     constructor(x, y, width, height, health, parentAgent = null, state = null) {
 
@@ -28,12 +31,20 @@ export class Cuboid {
             this.age = state.age;
             this.children = state.children;
             // You may need to modify the brain deserialization depending on its structure
-            this.brain = new Brain(parentAgent, JSON.parse(state.brain));
+            this.brain = new VectorBrain(parentAgent, JSON.parse(state.brain));
         } else {
             this.health = health;
             this.age = 1;
             this.children = 0;
-            this.brain = new Brain(parentAgent);
+            this.brain = new VectorBrain(parentAgent);
+        }
+
+        if (isNaN(x)) {
+            console.log("Position x is nan")
+        }
+
+        if (isNaN(y)) {
+            console.log("Position y is nan")
         }
 
         // Create a dynamic rigid-body.
@@ -50,7 +61,7 @@ export class Cuboid {
         this.cuboidBodyMesh = new THREE.Mesh(cuboidGeometry, cuboidMaterial);
         scene.add(this.cuboidBodyMesh);
 
-        const eyeRadius = Math.max(width, height) * 7 / 2;
+        const eyeRadius = Math.max(width, height) * 20 / 2;
         // Create an eye collider that is twice the size of the cuboid object.
         let eyeColliderDesc = RAPIER.ColliderDesc.ball(eyeRadius).setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS).setSensor(true);
         this.eyeCollider = world.createCollider(eyeColliderDesc, this.rigidBody);
@@ -104,7 +115,7 @@ export class Cuboid {
     calculateEnvironmentalEffects() {
         this.age++;
         if (this.interactionType === "Plant") {
-            this.health -= 1;
+            this.health += 1;
         } else {
             this.health -= .1;
         }
@@ -136,32 +147,33 @@ export class Cuboid {
         const actionTypes = this.brain.actionTypes;
         const orientation = this.rigidBody.rotation();
 
-        const linearImpulseStrength = 0.5;
-        const rotationalImpulseStrength = 0.05;
-
         for (let i = 0; i < actionTypes.length; i++) {
             const actionType = actionTypes[i];
             const impulseValue = action[i];
 
+            if (isNaN(impulseValue)) {
+                console.log("Impulse value is Nan")
+            }
+
             switch (actionType) {
                 case "absolute_impulse.x":
-                    this.rigidBody.applyImpulse({x: impulseValue * linearImpulseStrength, y: 0}, true);
+                    this.rigidBody.applyImpulse({x: impulseValue * LINEAR_IMPULSE_STRENGTH, y: 0}, true);
                     break;
                 case "absolute_impulse.y":
-                    this.rigidBody.applyImpulse({x: 0, y: impulseValue * linearImpulseStrength}, true);
+                    this.rigidBody.applyImpulse({x: 0, y: impulseValue * LINEAR_IMPULSE_STRENGTH}, true);
                     break;
                 case "relative_impulse.x":
-                    const impulseX = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
-                    const impulseY = impulseValue * (Math.sin(orientation) * linearImpulseStrength);
+                    const impulseX = impulseValue * (Math.cos(orientation) * LINEAR_IMPULSE_STRENGTH);
+                    const impulseY = impulseValue * (Math.sin(orientation) * LINEAR_IMPULSE_STRENGTH);
                     this.rigidBody.applyImpulse({x: impulseX, y: impulseY}, true);
                     break;
                 case "relative_impulse.y":
-                    const impulseXNeg = -impulseValue * (Math.sin(orientation) * linearImpulseStrength);
-                    const impulseYPos = impulseValue * (Math.cos(orientation) * linearImpulseStrength);
+                    const impulseXNeg = -impulseValue * (Math.sin(orientation) * LINEAR_IMPULSE_STRENGTH);
+                    const impulseYPos = impulseValue * (Math.cos(orientation) * LINEAR_IMPULSE_STRENGTH);
                     this.rigidBody.applyImpulse({x: impulseXNeg, y: impulseYPos}, true);
                     break;
                 case "rotational_impulse":
-                    this.rigidBody.applyTorqueImpulse(impulseValue * rotationalImpulseStrength);
+                    this.rigidBody.applyTorqueImpulse(impulseValue * ROTATIONAL_IMPULSE_STRENGTH);
                     break;
                 default:
                     throw new Error(`Invalid action type: ${actionType}`);

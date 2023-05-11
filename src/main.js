@@ -21,7 +21,7 @@ async function init() {
     initRenderer(world_size);
 
     document.addEventListener('click', onMouseClick, false);
-    const sceneObjectsManager = new SceneObjectsManager(world_size);
+    // const sceneObjectsManager = new SceneObjectsManager(world_size);
 
 
     const width = 1;
@@ -29,7 +29,9 @@ async function init() {
     const health = 100;
     const padding = .1;
     const numCuboids = 150;
-    cuboids = loadTop50HealthiestCreatures(world_size/2, width, height);
+    // cuboids = loadTop50HealthiestCreatures(world_size/2, width, height);
+    cuboids = [];
+    let newCuboids = [];
 
     while (cuboids.length < numCuboids) {
         let attempts = 0;
@@ -53,13 +55,13 @@ async function init() {
         }
     }
 
-    document.getElementById('save-top-50').addEventListener('click', () => {
-        // Assuming you have the creatures array available in the scope
-        saveTop50HealthiestCreatures(cuboids);
-    });
+    // document.getElementById('save-top-50').addEventListener('click', () => {
+    //     // Assuming you have the creatures array available in the scope
+    //     saveTop50HealthiestCreatures(cuboids);
+    // });
 
 
-    cuboids = cuboids.concat(loadTop50HealthiestCreatures());
+    // cuboids = cuboids.concat(loadTop50HealthiestCreatures());
 
 
     initInputHandler();
@@ -67,9 +69,8 @@ async function init() {
     const animate = () => {
         requestAnimationFrame(animate);
 
-        world.step();
 
-        sceneObjectsManager.update();
+        // sceneObjectsManager.update();
 
         for (const cuboid of cuboids) {
 
@@ -91,15 +92,31 @@ async function init() {
             cuboid.reactToWorld();
             cuboid.calculateEnvironmentalEffects();
 
+            if (isNaN(cuboid.rigidBody.translation().x)) {
+                console.log("Cuboid x is nan")
+            }
+
+            if (isNaN(cuboid.rigidBody.translation().y)) {
+                console.log("Cuboid y is nan")
+            }
+
             // Check if the health is less than or equal to 0 and replace the cuboid
-            if (cuboid.health > 1000) {
+            if (cuboid.health > 1000 && cuboids.length < 500) {
                 // Generate a new random position for the new cuboid
                 const newPosition = generateRandomPositionWithinDistance(cuboid.rigidBody.translation(), 3);
+
+                if (isNaN(newPosition.x)) {
+                    console.log("Position x is nan")
+                }
+
+                if (isNaN(newPosition.y)) {
+                    console.log("Position y is nan")
+                }
 
                 if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
                     cuboid.health -= 900
                     const newCuboid = new Cuboid(newPosition.x, newPosition.y, width, height, 100, cuboid);
-                    cuboids.push(newCuboid);
+                    newCuboids.push(newCuboid);
                 }
             }
 
@@ -112,15 +129,21 @@ async function init() {
 
         cuboids = cuboids.filter(cuboid => cuboid !== null);
 
-        // Occasionally sprinkle in some genetic diversity
-        if (Math.random() < .05) {
-            const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
 
-            if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
-                const newCuboid = new Cuboid(newPosition.x, newPosition.y, width, height, 100);
-                cuboids.push(newCuboid);
-            }
-        }
+        cuboids = cuboids.concat(newCuboids);
+        newCuboids = [];
+
+        world.step();
+
+        // Occasionally sprinkle in some genetic diversity
+        // if (Math.random() < .05) {
+        //     const newPosition = generateRandomPositionWithinDistance({ x: 0, y: 0}, 50);
+        //
+        //     if (isSpaceEmpty(newPosition.x, newPosition.y, width, height, padding)) {
+        //         const newCuboid = new Cuboid(newPosition.x, newPosition.y, width, height, 100);
+        //         cuboids.push(newCuboid);
+        //     }
+        // }
 
 
 

@@ -11,8 +11,8 @@ class SceneObjectsManager {
         const padding = 0.1;
         const halfWorldSize = worldSize / 2;
         const numSceneObjects = 1;
-        const obstacleWidth = 20;
-        const obstacleHeight = 20;
+        const obstacleWidth = 200;
+        const obstacleHeight = 200;
 
         for (let i = 0; i < numSceneObjects; i++) {
             let attempts = 0;
@@ -38,18 +38,18 @@ class SceneObjectsManager {
     }
 
     update() {
-        for (const sceneObject of sceneObjects) {
-            let affectedCuboids = []
-            world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
-                if (otherCollider.parent().userData !== undefined && otherCollider.parent().userData.interactionType === "Plant") {
-                    const affectedCuboid = otherCollider.parent().userData;
-                    affectedCuboids.push(affectedCuboid);
-                }
-            });
-            for (const affectedCuboid of affectedCuboids) {
-                affectedCuboid.health += 2;
-            }
-        }
+        // for (const sceneObject of sceneObjects) {
+        //     let affectedCuboids = []
+        //     world.intersectionsWith(sceneObject.sensorCollider, (otherCollider) => {
+        //         if (otherCollider.parent().userData !== undefined && otherCollider.parent().userData.interactionType === "Plant") {
+        //             const affectedCuboid = otherCollider.parent().userData;
+        //             affectedCuboids.push(affectedCuboid);
+        //         }
+        //     });
+        //     for (const affectedCuboid of affectedCuboids) {
+        //         affectedCuboid.health += 2;
+        //     }
+        // }
     }
 }
 

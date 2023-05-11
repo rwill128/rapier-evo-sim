@@ -9,12 +9,22 @@ export function generateRandomPosition(worldSize, width, height) {
 }
 
 export function generateRandomPositionWithinDistance(point, distance) {
+
+
     const angle = Math.random() * Math.PI * 2; // Random angle in radians
     const dx = distance * Math.cos(angle); // Change in x
     const dy = distance * Math.sin(angle); // Change in y
 
     const x = point.x + dx;
     const y = point.y + dy;
+
+    if (isNaN(x)) {
+        console.log("Position x is nan")
+    }
+
+    if (isNaN(y)) {
+        console.log("Position y is nan")
+    }
 
     return { x, y };
 }
